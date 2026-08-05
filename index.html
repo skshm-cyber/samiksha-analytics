@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samiksha — Analytics Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <style>
+        /* =============================================================
+           DESIGN TOKENS
+           ============================================================= */
+        :root {
+            --bg-root: #09090b;
+            --bg-surface: #0f0f12;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.05);
+            --bg-elevated: rgba(255, 255, 255, 0.06);
+            --bg-input: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(255, 255, 255, 0.1);
+            --border-active: rgba(139, 92, 246, 0.4);
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #52525b;
+            --accent: #8b5cf6;
+            --green: #22c55e;
+            --green-dim: rgba(34, 197, 94, 0.12);
+            --red: #ef4444;
+            --red-dim: rgba(239, 68, 68, 0.12);
+            --yellow: #eab308;
+            --yellow-dim: rgba(234, 179, 8, 0.12);
+            --blue: #3b82f6;
+            --blue-dim: rgba(59, 130, 246, 0.12);
+            --cyan: #06b6d4;
+            --cyan-dim: rgba(6, 182, 212, 0.12);
+            --violet: #a78bfa;
+            --violet-dim: rgba(167, 139, 250, 0.12);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+            --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
+            --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+            --radius-full: 9999px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --duration: 0.2s;
+        }
+
+        /* =============================================================
+           RESET
+           ============================================================= */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body {
+            font-family: var(--font);
+            background: var(--bg-root);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: inherit; text-decoration: none; }
+        button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+        input { font-family: inherit; color: inherit; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: var(--radius-full); }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* =============================================================
+           TOP NAVIGATION
+           ============================================================= */
+        .topnav {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 56px; padding: 0 var(--sp-6);
+            background: rgba(9,9,11,0.8);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+        }
+        .topnav-left { display: flex; align-items: center; gap: var(--sp-5); }
+        .logo { display: flex; align-items: center; gap: var(--sp-2); font-weight: 600; font-size: 1rem; letter-spacing: -0.02em; white-space: nowrap; }
+        .logo-icon {
+            width: 24px; height: 24px; border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700; color: white;
+        }
+        .nav-divider { width: 1px; height: 20px; background: var(--border); }
+        .website-selector {
+            display: flex; align-items: center; gap: var(--sp-2);
+            padding: var(--sp-1) var(--sp-3); border-radius: var(--radius-sm);
+            font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
+            transition: all var(--duration) var(--ease); cursor: pointer;
+        }
+        .website-selector:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .website-selector svg { opacity: 0.5; }
+
+        .topnav-center { display: flex; align-items: center; }
+        .date-range {
+            display: flex; align-items: center;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 3px; gap: 2px;
+        }
+        .date-btn {
+            padding: 5px 12px; border-radius: 9px;
+            font-size: 0.75rem; font-weight: 500; color: var(--text-tertiary);
+            transition: all var(--duration) var(--ease); white-space: nowrap;
+        }
+        .date-btn:hover { color: var(--text-secondary); }
+        .date-btn.active { background: var(--bg-elevated); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+
+        .topnav-right { display: flex; align-items: center; gap: var(--sp-3); }
+        .live-badge {
+            display: flex; align-items: center; gap: 6px;
+            padding: 4px 10px; border-radius: var(--radius-full);
+            background: var(--green-dim); font-size: 0.7rem; font-weight: 600;
+            color: var(--green); letter-spacing: 0.03em;
+        }
+        .live-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
+
+        .icon-btn {
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            border-radius: var(--radius-sm); color: var(--text-tertiary);
+            transition: all var(--duration) var(--ease);
+        }
+        .icon-btn:hover { background: var(--bg-card-hover); color: var(--text-secondary); }
+
+        .search-box {
+            display: flex; align-items: center; gap: var(--sp-2);
+            padding: 5px 10px; border-radius: var(--radius-sm);
+            background: var(--bg-input); border: 1px solid var(--border);
+            transition: all var(--duration) var(--ease); width: 180px;
+        }
+        .search-box:focus-within { border-color: var(--border-active); background: var(--bg-card); }
+        .search-box input {
+            background: none; border: none; outline: none;
+            font-size: 0.8125rem; color: var(--text-secondary); width: 100%;
+        }
+        .search-box input::placeholder { color: var(--text-tertiary); }
+        .search-box svg { flex-shrink: 0; color: var(--text-tertiary); }
+        .search-kbd {
+            font-size: 0.625rem; color: var(--text-tertiary);
+            background: var(--bg-elevated); padding: 1px 5px; border-radius: 4px;
+            font-weight: 500; border: 1px solid var(--border);
+        }
+
+        /* =============================================================
+           MAIN CONTENT
+           ============================================================= */
+        .main { max-width: 1400px; margin: 0 auto; padding: var(--sp-8) var(--sp-6); }
+
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: var(--sp-5);
+        }
+        .section-title {
+            font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);
+            letter-spacing: 0.03em; text-transform: uppercase;
+        }
+
+        /* =============================================================
+           HERO STATISTICS — 4 large cards across the top
+           ============================================================= */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--sp-4);
+            margin-bottom: var(--sp-6);
+        }
+
+        .hero-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            transition: all 0.3s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        }
+        .hero-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .hero-card .stat-label {
+            font-size: 0.8125rem; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: var(--sp-3);
+        }
+        .hero-card .stat-row {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: var(--sp-4);
+        }
+        .hero-card .stat-number {
+            font-size: 2.5rem; font-weight: 700;
+            letter-spacing: -0.03em; line-height: 1; color: var(--text-primary);
+        }
+        .hero-card .stat-sparkline { height: 48px; margin-bottom: var(--sp-3); }
+        .hero-card .stat-compare { font-size: 0.75rem; color: var(--text-tertiary); }
+        .hero-card .stat-compare strong { color: var(--text-secondary); font-weight: 500; }
+
+        /* =============================================================
+           SECONDARY STAT CARDS — 6 cards in 3 columns
+           ============================================================= */
+        .secondary-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--sp-4);
+            margin-bottom: var(--sp-8);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            transition: all 0.3s var(--ease);
+        }
+        .stat-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.8125rem; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: var(--sp-2);
+        }
+        .stat-card .stat-row {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: var(--sp-3);
+        }
+        .stat-card .stat-number {
+            font-size: 1.75rem; font-weight: 700;
+            letter-spacing: -0.02em; line-height: 1; color: var(--text-primary);
+        }
+        .stat-card .stat-sparkline { height: 36px; margin-bottom: var(--sp-2); }
+        .stat-card .stat-compare { font-size: 0.75rem; color: var(--text-tertiary); }
+        .stat-card .stat-compare strong { color: var(--text-secondary); font-weight: 500; }
+
+        /* =============================================================
+           CHANGE BADGES — the +12.5% / -3.2% pill
+           ============================================================= */
+        .stat-badge {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 3px 8px; border-radius: var(--radius-full);
+            font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+        }
+        .stat-badge svg { flex-shrink: 0; }
+        .stat-badge.positive { background: var(--green-dim); color: var(--green); }
+        .stat-badge.negative { background: var(--red-dim); color: var(--red); }
+
+        /* =============================================================
+           RESPONSIVE
+           ============================================================= */
+        @media (max-width: 1200px) {
+            .hero-stats { grid-template-columns: repeat(2, 1fr); }
+            .secondary-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .topnav { padding: 0 var(--sp-4); }
+            .topnav-center { display: none; }
+            .search-box { display: none; }
+            .nav-divider { display: none; }
+            .main { padding: var(--sp-5) var(--sp-4); }
+            .hero-stats { grid-template-columns: 1fr; }
+            .secondary-stats { grid-template-columns: 1fr; }
+            .hero-card .stat-number { font-size: 2rem; }
+            .stat-card .stat-number { font-size: 1.5rem; }
+            .live-section { grid-template-columns: 1fr; }
+            .globe-wrapper { max-width: 320px; margin: 0 auto; }
+        }
+
+        /* =============================================================
+           SECTION 3: LIVE ACTIVITY — Globe + Feed
+           ============================================================= */
+        .live-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-6);
+            margin-bottom: var(--sp-8);
+        }
+
+        /* Globe container */
+        .globe-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .globe-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 1;
+        }
+        .globe-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        /* Overlay stats on top of the globe */
+        .globe-overlay {
+            position: absolute;
+            bottom: var(--sp-5);
+            left: var(--sp-5);
+            right: var(--sp-5);
+            display: flex;
+            justify-content: space-between;
+        }
+        .globe-stat {
+            background: rgba(9,9,11,0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: var(--sp-2) var(--sp-3);
+            text-align: center;
+        }
+        .globe-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        .globe-stat-label {
+            font-size: 0.625rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Activity feed panel */
+        .feed-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            display: flex;
+            flex-direction: column;
+        }
+        .feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--sp-4);
+            padding-bottom: var(--sp-3);
+            border-bottom: 1px solid var(--border);
+        }
+        .feed-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .feed-count {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+        .feed-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Individual activity item */
+        .feed-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--sp-3);
+            padding: var(--sp-3);
+            border-radius: var(--radius-sm);
+            transition: background var(--duration) var(--ease);
+            animation: feedSlideIn 0.3s var(--ease);
+        }
+        .feed-item:hover { background: var(--bg-card-hover); }
+
+        @keyframes feedSlideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .feed-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.875rem;
+        }
+        .feed-icon.entry   { background: var(--green-dim); }
+        .feed-icon.page    { background: var(--blue-dim); }
+        .feed-icon.click   { background: var(--violet-dim); }
+        .feed-icon.form    { background: var(--yellow-dim); }
+        .feed-icon.download{ background: var(--cyan-dim); }
+        .feed-icon.link    { background: rgba(251,146,60,0.12); }
+        .feed-icon.exit    { background: var(--red-dim); }
+
+        .feed-content { flex: 1; min-width: 0; }
+        .feed-text {
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .feed-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+            margin-top: 2px;
+            font-size: 0.6875rem;
+            color: var(--text-tertiary);
+        }
+        .feed-meta-dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+        .feed-time {
+            font-size: 0.6875rem;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =============================================================
+         TOP NAVIGATION
+         ============================================================= -->
+    <nav class="topnav">
+        <div class="topnav-left">
+            <div class="logo">
+                <div class="logo-icon">S</div>
+                <span>Samiksha</span>
+            </div>
+            <div class="nav-divider"></div>
+            <button class="website-selector" id="website-selector">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>mywebsite.com</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+        </div>
+        <div class="topnav-center">
+            <div class="date-range" id="date-range">
+                <button class="date-btn active" data-range="today">Today</button>
+                <button class="date-btn" data-range="yesterday">Yesterday</button>
+                <button class="date-btn" data-range="7d">7 Days</button>
+                <button class="date-btn" data-range="30d">30 Days</button>
+                <button class="date-btn" data-range="90d">90 Days</button>
+            </div>
+        </div>
+        <div class="topnav-right">
+            <div class="live-badge"><span class="live-dot"></span><span>LIVE</span></div>
+            <div class="search-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Search...">
+                <span class="search-kbd">/</span>
+            </div>
+            <button class="icon-btn" title="Export">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button class="icon-btn" title="Settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- =============================================================
+         MAIN CONTENT
+         ============================================================= -->
+    <main class="main">
+
+        <!-- ===================== SECTION 2: HERO STATISTICS ===================== -->
+        <div id="section-stats">
+            <div class="section-header">
+                <div class="section-title">Overview</div>
+            </div>
+
+            <!-- 4 hero cards -->
+            <div class="hero-stats">
+                <!-- Card 1: Visitors Today -->
+                <div class="hero-card" data-stat="visitors">
+                    <div class="stat-label">Visitors Today</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="1284" data-format="int">0</div>
+                        <div class="stat-badge positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            <span>12.5%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>1,142</strong> yesterday</div>
+                </div>
+
+                <!-- Card 2: Live Visitors -->
+                <div class="hero-card" data-stat="live">
+                    <div class="stat-label">Live Visitors</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="23" data-format="int">0</div>
+                        <div class="stat-badge positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            <span>8.2%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>21</strong> yesterday</div>
+                </div>
+
+                <!-- Card 3: Page Views -->
+                <div class="hero-card" data-stat="pageViews">
+                    <div class="stat-label">Page Views</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="3847" data-format="int">0</div>
+                        <div class="stat-badge negative">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            <span>2.1%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>3,929</strong> yesterday</div>
+                </div>
+
+                <!-- Card 4: Sessions -->
+                <div class="hero-card" data-stat="sessions">
+                    <div class="stat-label">Sessions</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="956" data-format="int">0</div>
+                        <div class="stat-badge positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            <span>5.8%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>903</strong> yesterday</div>
+                </div>
+            </div>
+
+            <!-- 6 secondary cards -->
+            <div class="secondary-stats">
+                <!-- Card 5: Unique Visitors -->
+                <div class="stat-card" data-stat="unique">
+                    <div class="stat-label">Unique Visitors</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="892" data-format="int">0</div>
+                        <div class="stat-badge positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            <span>3.2%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>864</strong> yesterday</div>
+                </div>
+
+                <!-- Card 6: Avg Session Duration -->
+                <div class="stat-card" data-stat="duration">
+                    <div class="stat-label">Avg Session Duration</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="272" data-format="duration">0:00</div>
+                        <div class="stat-badge positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            <span>15.3%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>3:56</strong> yesterday</div>
+                </div>
+
+                <!-- Card 7: Bounce Rate -->
+                <div class="stat-card" data-stat="bounceRate">
+                    <div class="stat-label">Bounce Rate</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="32.4" data-format="percent">0%</div>
+                        <div class="stat-badge positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            <span>5.1%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>34.1%</strong> yesterday</div>
+                </div>
+
+                <!-- Card 8: Conversion Rate -->
+                <div class="stat-card" data-stat="conversion">
+                    <div class="stat-label">Conversion Rate</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="3.8" data-format="percent">0%</div>
+                        <div class="stat-badge positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            <span>0.5%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>3.6%</strong> yesterday</div>
+                </div>
+
+                <!-- Card 9: Returning Visitors -->
+                <div class="stat-card" data-stat="returning">
+                    <div class="stat-label">Returning Visitors</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="342" data-format="int">0</div>
+                        <div class="stat-badge positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            <span>18.7%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>288</strong> yesterday</div>
+                </div>
+
+                <!-- Card 10: New Visitors -->
+                <div class="stat-card" data-stat="newVisitors">
+                    <div class="stat-label">New Visitors</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="550" data-format="int">0</div>
+                        <div class="stat-badge negative">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            <span>4.3%</span>
+                        </div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare">vs <strong>575</strong> yesterday</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 3: LIVE ACTIVITY ===================== -->
+        <div id="section-live">
+            <div class="section-header">
+                <div class="section-title">Live Activity</div>
+            </div>
+            <div class="live-section">
+                <!-- Left: Globe -->
+                <div class="globe-panel">
+                    <div class="globe-wrapper">
+                        <canvas class="globe-canvas" id="globe-canvas"></canvas>
+                        <div class="globe-overlay">
+                            <div class="globe-stat">
+                                <div class="globe-stat-value" id="globe-visitors">23</div>
+                                <div class="globe-stat-label">Live Now</div>
+                            </div>
+                            <div class="globe-stat">
+                                <div class="globe-stat-value" id="globe-countries">8</div>
+                                <div class="globe-stat-label">Countries</div>
+                            </div>
+                            <div class="globe-stat">
+                                <div class="globe-stat-value" id="globe-pages">47</div>
+                                <div class="globe-stat-label">Pages/min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Activity Feed -->
+                <div class="feed-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Recent Activity</div>
+                        <div class="feed-count" id="feed-count">23 active visitors</div>
+                    </div>
+                    <div class="feed-list" id="feed-list">
+                        <!-- Events are injected here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="section-journey"></div>
+        <div id="section-heat"></div>
+        <div id="section-traffic"></div>
+        <div id="section-pages"></div>
+        <div id="section-events"></div>
+        <div id="section-behaviour"></div>
+        <div id="section-health"></div>
+        <div id="section-insights"></div>
+        <div id="section-alerts"></div>
+
+    </main>
+
+    <!-- =============================================================
+         JAVASCRIPT
+         ============================================================= -->
+    <script>
+    (function () {
+        "use strict";
+
+        var API_BASE = "https://samiksha-analytics1.tewarisaksham20.workers.dev";
+        var currentDays = 1;
+
+        /* =============================================================
+           1. DATE RANGE SELECTOR
+           ============================================================= */
+        var dateRange = document.getElementById("date-range");
+        if (dateRange) {
+            var dateButtons = dateRange.querySelectorAll(".date-btn");
+            dateButtons.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    dateButtons.forEach(function (b) { b.classList.remove("active"); });
+                    btn.classList.add("active");
+                    var range = btn.getAttribute("data-range");
+                    if (range === "today") currentDays = 1;
+                    else if (range === "yesterday") currentDays = 1;
+                    else if (range === "7d") currentDays = 7;
+                    else if (range === "30d") currentDays = 30;
+                    else if (range === "90d") currentDays = 90;
+                    fetchAll();
+                });
+            });
+        }
+
+        /* =============================================================
+           2. KEYBOARD SHORTCUT: "/" to focus search
+           ============================================================= */
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
+                e.preventDefault();
+                var input = document.querySelector(".search-box input");
+                if (input) input.focus();
+            }
+        });
+
+        /* =============================================================
+           3. SPARKLINE COLORS
+           ============================================================= */
+        var COLORS = {
+            visitors:    "#8b5cf6",
+            live:        "#22c55e",
+            pageViews:   "#3b82f6",
+            sessions:    "#06b6d4",
+            unique:      "#a78bfa",
+            duration:    "#eab308",
+            bounceRate:  "#ef4444",
+            conversion:  "#22c55e",
+            returning:   "#8b5cf6",
+            newVisitors: "#3b82f6"
+        };
+
+        /* =============================================================
+           4. HELPER: hex color to rgba string
+           ============================================================= */
+        function hexToRgba(hex, alpha) {
+            var r = parseInt(hex.slice(1, 3), 16);
+            var g = parseInt(hex.slice(3, 5), 16);
+            var b = parseInt(hex.slice(5, 7), 16);
+            return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+        }
+
+        /* =============================================================
+           5. CREATE A SPARKLINE (tiny Chart.js line chart)
+           ============================================================= */
+        var sparklineInstances = {};
+        function createSparkline(canvas, data, color, key) {
+            if (!canvas || typeof Chart === "undefined") return;
+            var ctx = canvas.getContext("2d");
+            if (sparklineInstances[key]) {
+                sparklineInstances[key].destroy();
+            }
+            var gradient = ctx.createLinearGradient(0, 0, 0, canvas.parentElement.clientHeight || 48);
+            gradient.addColorStop(0, hexToRgba(color, 0.25));
+            gradient.addColorStop(1, hexToRgba(color, 0.0));
+            sparklineInstances[key] = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: data.map(function (_, i) { return i; }),
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        borderWidth: 1.5,
+                        fill: true,
+                        backgroundColor: gradient,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: { x: { display: false }, y: { display: false } },
+                    animation: { duration: 1000, easing: "easeOutQuart" }
+                }
+            });
+        }
+
+        /* =============================================================
+           6. NUMBER FORMATTERS
+           ============================================================= */
+        function formatInt(n) { return Math.round(n).toLocaleString(); }
+        function formatPercent(n) { return n.toFixed(1) + "%"; }
+        function formatDuration(s) {
+            var m = Math.floor(s / 60);
+            var sec = Math.round(s % 60);
+            return m + ":" + (sec < 10 ? "0" : "") + sec;
+        }
+
+        var FORMATTERS = { int: formatInt, percent: formatPercent, duration: formatDuration };
+
+        /* =============================================================
+           7. ANIMATE NUMBER
+           ============================================================= */
+        function animateNumber(element, target, duration, formatter) {
+            if (!element) return;
+            var startTime = null;
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var progress = Math.min((timestamp - startTime) / duration, 1);
+                var ease = 1 - Math.pow(1 - progress, 3);
+                element.textContent = formatter(target * ease);
+                if (progress < 1) requestAnimationFrame(step);
+                else element.textContent = formatter(target);
+            }
+            requestAnimationFrame(step);
+        }
+
+        /* =============================================================
+           8. API FETCH HELPER
+           ============================================================= */
+        function apiFetch(path) {
+            return fetch(API_BASE + path, {
+                headers: { "Accept": "application/json" }
+            }).then(function (r) { return r.json(); });
+        }
+
+        /* =============================================================
+           9. UPDATE STAT CARD
+           ============================================================= */
+        function setStat(key, value, format) {
+            var card = document.querySelector('[data-stat="' + key + '"]');
+            if (!card) return;
+            var el = card.querySelector(".stat-number");
+            if (!el) return;
+            var formatter = FORMATTERS[format || "int"] || formatInt;
+            animateNumber(el, value, 800, formatter);
+        }
+
+        function setSparkline(key, data) {
+            var card = document.querySelector('[data-stat="' + key + '"]');
+            if (!card) return;
+            var canvas = card.querySelector("canvas");
+            createSparkline(canvas, data, COLORS[key] || "#8b5cf6", key);
+        }
+
+        function setCompare(key, text) {
+            var card = document.querySelector('[data-stat="' + key + '"]');
+            if (!card) return;
+            var el = card.querySelector(".stat-compare");
+            if (el) el.innerHTML = text;
+        }
+
+        /* =============================================================
+           10. FETCH & RENDER ALL STATS
+           ============================================================= */
+        function fetchAll() {
+            Promise.all([
+                apiFetch("/api/stats/overview"),
+                apiFetch("/api/stats/secondary"),
+                apiFetch("/api/stats/trends?days=" + currentDays),
+                apiFetch("/api/stats/hourly"),
+                apiFetch("/api/stats/live"),
+                apiFetch("/api/stats/events?summary=true"),
+                apiFetch("/api/stats/daily?days=" + currentDays)
+            ]).then(function (results) {
+                var overview = results[0] || {};
+                var secondary = results[1] || {};
+                var trends = results[2] || {};
+                var hourly = results[3] || {};
+                var live = results[4] || {};
+                var eventsSummary = results[5] || {};
+                var daily = results[6] || {};
+
+                /* Hero stats */
+                setStat("visitors", overview.visitors_today || 0, "int");
+                setStat("live", overview.live_visitors || 0, "int");
+                setStat("pageViews", overview.page_views_today || 0, "int");
+                setStat("sessions", overview.sessions_today || 0, "int");
+
+                /* Secondary stats */
+                setStat("unique", secondary.unique_visitors || 0, "int");
+                setStat("duration", secondary.avg_session_duration || 0, "duration");
+                setStat("bounceRate", secondary.bounce_rate || 0, "percent");
+                setStat("conversion", secondary.conversion_rate || 0, "percent");
+                setStat("returning", secondary.returning_visitors || 0, "int");
+                setStat("newVisitors", secondary.new_visitors || 0, "int");
+
+                /* Sparklines from trends */
+                var trendData = trends.trends || [];
+                setSparkline("visitors", trendData.map(function (d) { return d.visitors || 0; }));
+                setSparkline("pageViews", trendData.map(function (d) { return d.page_views || 0; }));
+                setSparkline("sessions", trendData.map(function (d) { return d.sessions || 0; }));
+
+                /* Hourly sparkline for live */
+                var hourlyData = hourly.hourly || [];
+                setSparkline("live", hourlyData.map(function (d) { return d.visitors || 0; }));
+
+                /* Globe overlay */
+                var globeVisitors = document.getElementById("globe-visitors");
+                var globeCountries = document.getElementById("globe-countries");
+                var globePages = document.getElementById("globe-pages");
+                if (globeVisitors) globeVisitors.textContent = overview.live_visitors || 0;
+                if (globeCountries) globeCountries.textContent = secondary.countries || 0;
+                if (globePages) {
+                    var pagesPerMin = hourlyData.length > 0 ? Math.round((hourlyData[hourlyData.length - 1].page_views || 0) / 60) : 0;
+                    globePages.textContent = pagesPerMin;
+                }
+
+                /* Feed count */
+                var feedCount = document.getElementById("feed-count");
+                if (feedCount) feedCount.textContent = (overview.live_visitors || 0) + " active visitors";
+            }).catch(function (err) {
+                console.error("Failed to fetch stats:", err);
+            });
+        }
+
+        /* =============================================================
+           11. ACTIVITY FEED — real events with fallback to mock
+           ============================================================= */
+        var feedList = document.getElementById("feed-list");
+        var feedEvents = [];
+        var eventTypes = {
+            page_view: { type: "page", icon: "\uD83D\uDCC4", prefix: "Viewed " },
+            button_click: { type: "click", icon: "\uD83D\uDC46", prefix: "Clicked " },
+            form_submit: { type: "form", icon: "\uD83D\uDCE7", prefix: "Submitted " },
+            download: { type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
+            external_link: { type: "link", icon: "\uD83D\uDD17", prefix: "Opened " },
+            page_leave: { type: "exit", icon: "\u274C", prefix: "Left from " }
+        };
+
+        var mockFallback = [
+            { type: "entry",   icon: "\uD83D\uDFE2", text: "User entered from Chrome",       city: "New York",  device: "Desktop", page: "/",          browser: "Chrome" },
+            { type: "page",    icon: "\uD83D\uDCC4", text: "Opened /pricing page",           city: "London",    device: "Mobile",  page: "/pricing",   browser: "Safari" },
+            { type: "click",   icon: "\uD83D\uDC46", text: "Clicked \"Buy Now\" button",     city: "Tokyo",     device: "Desktop", page: "/pricing",   browser: "Firefox" },
+            { type: "form",    icon: "\uD83D\uDCE7", text: "Submitted contact form",         city: "Sydney",    device: "Tablet",  page: "/contact",   browser: "Chrome" },
+            { type: "download",icon: "\u2B07\uFE0F", text: "Downloaded report.pdf",          city: "Berlin",    device: "Desktop", page: "/resources", browser: "Edge" },
+            { type: "link",    icon: "\uD83D\uDD17", text: "Clicked external link",          city: "Paris",     device: "Mobile",  page: "/about",     browser: "Safari" },
+            { type: "exit",    icon: "\u274C",       text: "Left the website",               city: "Mumbai",    device: "Desktop", page: "/pricing",   browser: "Chrome" }
+        ];
+
+        function addFeedItem(ev, time, prepend) {
+            if (!feedList) return;
+            var item = document.createElement("div");
+            item.className = "feed-item";
+            item.innerHTML =
+                '<div class="feed-icon ' + ev.type + '">' + ev.icon + '</div>' +
+                '<div class="feed-content">' +
+                    '<div class="feed-text">' + ev.text + '</div>' +
+                    '<div class="feed-meta">' +
+                        '<span>' + ev.city + '</span>' +
+                        '<span class="feed-meta-dot"></span>' +
+                        '<span>' + ev.browser + '</span>' +
+                        '<span class="feed-meta-dot"></span>' +
+                        '<span>' + ev.device + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="feed-time">' + time + '</div>';
+            if (prepend) feedList.insertBefore(item, feedList.firstChild);
+            else feedList.appendChild(item);
+            while (feedList.children.length > 20) feedList.removeChild(feedList.lastChild);
+        }
+
+        function pollEvents() {
+            apiFetch("/api/stats/events?summary=true").then(function (data) {
+                var events = data.events || data.recent || [];
+                if (events.length === 0) {
+                    events = mockFallback;
+                }
+                events.forEach(function (ev, i) {
+                    var mapped = eventTypes[ev.event_type] || { type: "page", icon: "\uD83D\uDCC4", prefix: "" };
+                    addFeedItem({
+                        type: mapped.type,
+                        icon: mapped.icon,
+                        text: mapped.prefix + (ev.event_target || ev.page_url || "page"),
+                        city: ev.city || "Unknown",
+                        device: ev.device_type || "Desktop",
+                        page: ev.page_url || "/",
+                        browser: ev.browser || "Unknown"
+                    }, i === 0 ? "Just now" : (i * 3) + "s ago", i === 0);
+                });
+            }).catch(function () {
+                /* Keep existing feed on error */
+            });
+        }
+
+        /* =============================================================
+           12. GLOBE — Canvas wireframe globe (keep existing logic)
+           ============================================================= */
+        (function initGlobe() {
+            var canvas = document.getElementById("globe-canvas");
+            if (!canvas) return;
+            var ctx = canvas.getContext("2d");
+            var visitors = [
+                { lat: 40.71, lon: -74.01, city: "New York",  color: "#8b5cf6" },
+                { lat: 51.51, lon: -0.13,  city: "London",    color: "#3b82f6" },
+                { lat: 35.68, lon: 139.65, city: "Tokyo",     color: "#06b6d4" },
+                { lat: -33.87,lon: 151.21, city: "Sydney",    color: "#22c55e" },
+                { lat: -23.55,lon: -46.63, city: "São Paulo", color: "#eab308" },
+                { lat: 19.08, lon: 72.88,  city: "Mumbai",    color: "#f97316" },
+                { lat: 52.52, lon: 13.41,  city: "Berlin",    color: "#a78bfa" },
+                { lat: 48.86, lon: 2.35,   city: "Paris",     color: "#ec4899" },
+                { lat: 1.35,  lon: 103.82, city: "Singapore", color: "#14b8a6" },
+                { lat: 25.20, lon: 55.27,  city: "Dubai",     color: "#f43f5e" },
+                { lat: 37.57, lon: 126.98, city: "Seoul",     color: "#8b5cf6" },
+                { lat: 55.76, lon: 37.62,  city: "Moscow",    color: "#3b82f6" }
+            ];
+            var rotation = 0;
+            var dpr = window.devicePixelRatio || 1;
+            function resize() {
+                var rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            resize();
+            window.addEventListener("resize", resize);
+            function project(lat, lon) {
+                var phi = (90 - lat) * Math.PI / 180;
+                var theta = (lon + rotation) * Math.PI / 180;
+                return {
+                    x: Math.sin(phi) * Math.cos(theta),
+                    y: Math.cos(phi),
+                    z: Math.sin(phi) * Math.sin(theta)
+                };
+            }
+            function draw() {
+                var w = canvas.width / dpr;
+                var h = canvas.height / dpr;
+                var cx = w / 2;
+                var cy = h / 2;
+                var r = Math.min(w, h) / 2 - 24;
+                ctx.clearRect(0, 0, w, h);
+                var glow = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * 1.3);
+                glow.addColorStop(0, "rgba(139, 92, 246, 0.08)");
+                glow.addColorStop(1, "rgba(139, 92, 246, 0)");
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * 1.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "rgba(139, 92, 246, 0.25)";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+                ctx.lineWidth = 0.5;
+                [-60, -30, 0, 30, 60].forEach(function (lat) {
+                    var phi = (90 - lat) * Math.PI / 180;
+                    var latR = r * Math.sin(phi);
+                    var latY = cy - r * Math.cos(phi);
+                    ctx.beginPath();
+                    ctx.ellipse(cx, latY, latR, latR * 0.15, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+                for (var lon = 0; lon < 360; lon += 30) {
+                    ctx.beginPath();
+                    var first = true;
+                    for (var lat = -90; lat <= 90; lat += 3) {
+                        var p = project(lat, lon);
+                        var sx = cx + p.x * r;
+                        var sy = cy - p.y * r;
+                        if (first) { ctx.moveTo(sx, sy); first = false; }
+                        else ctx.lineTo(sx, sy);
+                    }
+                    ctx.stroke();
+                }
+                var time = Date.now() / 1000;
+                visitors.forEach(function (v) {
+                    var p = project(v.lat, v.lon);
+                    if (p.z < -0.1) return;
+                    var sx = cx + p.x * r;
+                    var sy = cy - p.y * r;
+                    var alpha = Math.max(0, 0.3 + p.z * 0.7);
+                    var pr = parseInt(v.color.slice(1, 3), 16);
+                    var pg = parseInt(v.color.slice(3, 5), 16);
+                    var pb = parseInt(v.color.slice(5, 7), 16);
+                    var pulseR = 8 + Math.sin(time * 2 + v.lat) * 3;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, pulseR, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(" + pr + "," + pg + "," + pb + "," + (alpha * 0.15).toFixed(2) + ")";
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, pulseR * 0.6, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(" + pr + "," + pg + "," + pb + "," + (alpha * 0.25).toFixed(2) + ")";
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(" + pr + "," + pg + "," + pb + "," + alpha.toFixed(2) + ")";
+                    ctx.fill();
+                    var dotGlow = ctx.createRadialGradient(sx, sy, 0, sx, sy, 12);
+                    dotGlow.addColorStop(0, "rgba(" + pr + "," + pg + "," + pb + "," + (alpha * 0.4).toFixed(2) + ")");
+                    dotGlow.addColorStop(1, "rgba(" + pr + "," + pg + "," + pb + ",0)");
+                    ctx.fillStyle = dotGlow;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    if (alpha > 0.35) {
+                        ctx.font = "600 10px Inter, sans-serif";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "middle";
+                        var labelX = sx + 9;
+                        var labelY = sy - 1;
+                        var labelText = v.city;
+                        var textW = ctx.measureText(labelText).width;
+                        var pillW = textW + 10;
+                        var pillH = 18;
+                        var pillX = labelX - 5;
+                        var pillY = labelY - pillH / 2;
+                        ctx.fillStyle = "rgba(9, 9, 11, " + (alpha * 0.75).toFixed(2) + ")";
+                        ctx.beginPath();
+                        var rr = 4;
+                        ctx.moveTo(pillX + rr, pillY);
+                        ctx.lineTo(pillX + pillW - rr, pillY);
+                        ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + rr);
+                        ctx.lineTo(pillX + pillW, pillY + pillH - rr);
+                        ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - rr, pillY + pillH);
+                        ctx.lineTo(pillX + rr, pillY + pillH);
+                        ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - rr);
+                        ctx.lineTo(pillX, pillY + rr);
+                        ctx.quadraticCurveTo(pillX, pillY, pillX + rr, pillY);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.strokeStyle = "rgba(" + pr + "," + pg + "," + pb + "," + (alpha * 0.4).toFixed(2) + ")";
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(pillX + rr, pillY);
+                        ctx.lineTo(pillX + pillW - rr, pillY);
+                        ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + rr);
+                        ctx.lineTo(pillX + pillW, pillY + pillH - rr);
+                        ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - rr, pillY + pillH);
+                        ctx.lineTo(pillX + rr, pillY + pillH);
+                        ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - rr);
+                        ctx.lineTo(pillX, pillY + rr);
+                        ctx.quadraticCurveTo(pillX, pillY, pillX + rr, pillY);
+                        ctx.closePath();
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.arc(labelX + 1, labelY, 2.5, 0, Math.PI * 2);
+                        ctx.fillStyle = "rgba(" + pr + "," + pg + "," + pb + "," + alpha.toFixed(2) + ")";
+                        ctx.fill();
+                        ctx.fillStyle = "rgba(255, 255, 255, " + (alpha * 0.9).toFixed(2) + ")";
+                        ctx.fillText(labelText, labelX + 8, labelY + 0.5);
+                    }
+                });
+                rotation += 0.15;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        /* =============================================================
+           13. INIT
+           ============================================================= */
+        fetchAll();
+        pollEvents();
+        setInterval(pollEvents, 10000);
+        setInterval(fetchAll, 30000);
+    })();
+    </script>
+
+</body>
+</html>
