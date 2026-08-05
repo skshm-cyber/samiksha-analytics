@@ -109,16 +109,6 @@ export default {
         return jsonResponse(env, { status: "healthy", service: "samiksha-analytics-api" }, 200, origin);
       }
 
-      // Debug — check if env vars are set (remove after testing)
-      if (path === "/debug") {
-        return jsonResponse(env, {
-          hasSupabaseUrl: !!env.SUPABASE_URL,
-          hasSupabaseKey: !!env.SUPABASE_ANON_KEY,
-          hasCors: !!env.CORS_ORIGINS,
-          supabaseUrl: env.SUPABASE_URL ? env.SUPABASE_URL.slice(0, 30) + "..." : "MISSING",
-        }, 200, origin);
-      }
-
       // Root
       if (path === "/") {
         return jsonResponse(env, {
