@@ -109,6 +109,16 @@ export default {
         return jsonResponse(env, { status: "healthy", service: "samiksha-analytics-api" }, 200, origin);
       }
 
+      // Debug — check if env vars are set (remove after testing)
+      if (path === "/debug") {
+        return jsonResponse(env, {
+          hasSupabaseUrl: !!env.SUPABASE_URL,
+          hasSupabaseKey: !!env.SUPABASE_ANON_KEY,
+          hasCors: !!env.CORS_ORIGINS,
+          supabaseUrl: env.SUPABASE_URL ? env.SUPABASE_URL.slice(0, 30) + "..." : "MISSING",
+        }, 200, origin);
+      }
+
       // Root
       if (path === "/") {
         return jsonResponse(env, {
@@ -122,7 +132,7 @@ export default {
       return errorResponse(env, "Not Found", 404, origin);
     } catch (err) {
       console.error("Unhandled error:", err);
-      return errorResponse(env, "Internal Server Error", 500, origin);
+      return jsonResponse(env, { error: "Internal Server Error", details: String(err) }, 500, origin);
     }
   },
 };
