@@ -511,56 +511,44 @@
                 <div class="hero-card" data-stat="visitors">
                     <div class="stat-label">Visitors Today</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="1284" data-format="int">0</div>
-                        <div class="stat-badge positive">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                            <span>12.5%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-visitors" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>1,142</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-visitors">loading...</div>
                 </div>
 
                 <!-- Card 2: Live Visitors -->
                 <div class="hero-card" data-stat="live">
                     <div class="stat-label">Live Visitors</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="23" data-format="int">0</div>
-                        <div class="stat-badge positive">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                            <span>8.2%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-live" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>21</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-live">loading...</div>
                 </div>
 
                 <!-- Card 3: Page Views -->
                 <div class="hero-card" data-stat="pageViews">
                     <div class="stat-label">Page Views</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="3847" data-format="int">0</div>
-                        <div class="stat-badge negative">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                            <span>2.1%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-pageViews" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>3,929</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-pageViews">loading...</div>
                 </div>
 
                 <!-- Card 4: Sessions -->
                 <div class="hero-card" data-stat="sessions">
                     <div class="stat-label">Sessions</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="956" data-format="int">0</div>
-                        <div class="stat-badge positive">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                            <span>5.8%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-sessions" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>903</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-sessions">loading...</div>
                 </div>
             </div>
 
@@ -570,84 +558,66 @@
                 <div class="stat-card" data-stat="unique">
                     <div class="stat-label">Unique Visitors</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="892" data-format="int">0</div>
-                        <div class="stat-badge positive">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                            <span>3.2%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-unique" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>864</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-unique">loading...</div>
                 </div>
 
                 <!-- Card 6: Avg Session Duration -->
                 <div class="stat-card" data-stat="duration">
                     <div class="stat-label">Avg Session Duration</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="272" data-format="duration">0:00</div>
-                        <div class="stat-badge positive">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                            <span>15.3%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="duration">0:00</div>
+                        <div class="stat-badge" id="badge-duration" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>3:56</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-duration">loading...</div>
                 </div>
 
                 <!-- Card 7: Bounce Rate -->
                 <div class="stat-card" data-stat="bounceRate">
                     <div class="stat-label">Bounce Rate</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="32.4" data-format="percent">0%</div>
-                        <div class="stat-badge positive">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                            <span>5.1%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="percent">0%</div>
+                        <div class="stat-badge" id="badge-bounceRate" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>34.1%</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-bounceRate">loading...</div>
                 </div>
 
                 <!-- Card 8: Conversion Rate -->
                 <div class="stat-card" data-stat="conversion">
                     <div class="stat-label">Conversion Rate</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="3.8" data-format="percent">0%</div>
-                        <div class="stat-badge positive">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                            <span>0.5%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="percent">0%</div>
+                        <div class="stat-badge" id="badge-conversion" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>3.6%</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-conversion">loading...</div>
                 </div>
 
                 <!-- Card 9: Returning Visitors -->
                 <div class="stat-card" data-stat="returning">
                     <div class="stat-label">Returning Visitors</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="342" data-format="int">0</div>
-                        <div class="stat-badge positive">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                            <span>18.7%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-returning" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>288</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-returning">loading...</div>
                 </div>
 
                 <!-- Card 10: New Visitors -->
                 <div class="stat-card" data-stat="newVisitors">
                     <div class="stat-label">New Visitors</div>
                     <div class="stat-row">
-                        <div class="stat-number" data-target="550" data-format="int">0</div>
-                        <div class="stat-badge negative">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                            <span>4.3%</span>
-                        </div>
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-newVisitors" style="display:none"></div>
                     </div>
                     <div class="stat-sparkline"><canvas></canvas></div>
-                    <div class="stat-compare">vs <strong>575</strong> yesterday</div>
+                    <div class="stat-compare" id="compare-newVisitors">loading...</div>
                 </div>
             </div>
         </div>
@@ -868,10 +838,20 @@
         }
 
         function setCompare(key, text) {
-            var card = document.querySelector('[data-stat="' + key + '"]');
-            if (!card) return;
-            var el = card.querySelector(".stat-compare");
+            var el = document.getElementById("compare-" + key);
             if (el) el.innerHTML = text;
+        }
+
+        function setBadge(key, pct, positive) {
+            var el = document.getElementById("badge-" + key);
+            if (!el) return;
+            if (pct === null || pct === undefined) { el.style.display = "none"; return; }
+            var arrow = positive
+                ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>'
+                : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+            el.innerHTML = arrow + '<span>' + Math.abs(pct).toFixed(1) + '%</span>';
+            el.className = "stat-badge " + (positive ? "positive" : "negative");
+            el.style.display = "inline-flex";
         }
 
         /* =============================================================
@@ -885,7 +865,7 @@
                 apiFetch("/api/stats/hourly"),
                 apiFetch("/api/stats/live"),
                 apiFetch("/api/stats/events?summary=true"),
-                apiFetch("/api/stats/daily?days=" + currentDays)
+                apiFetch("/api/stats/daily?days=" + Math.max(currentDays, 2))
             ]).then(function (results) {
                 var overview = results[0] || {};
                 var secondary = results[1] || {};
@@ -895,19 +875,64 @@
                 var eventsSummary = results[5] || {};
                 var daily = results[6] || {};
 
+                var dailyArr = daily.daily || [];
+                var today = dailyArr.length > 0 ? dailyArr[dailyArr.length - 1] : {};
+                var yesterday = dailyArr.length > 1 ? dailyArr[dailyArr.length - 2] : null;
+
+                /* Helper: compute % change, return {pct, positive} or null */
+                function calcChange(todayVal, yestVal) {
+                    if (!yestVal || yestVal === 0) return null;
+                    var pct = ((todayVal - yestVal) / yestVal) * 100;
+                    return { pct: Math.round(pct * 10) / 10, positive: pct >= 0 };
+                }
+
                 /* Hero stats */
                 setStat("visitors", overview.visitors_today || 0, "int");
                 setStat("live", overview.live_visitors || 0, "int");
                 setStat("pageViews", overview.page_views_today || 0, "int");
                 setStat("sessions", overview.sessions_today || 0, "int");
 
-                /* Secondary stats */
-                setStat("unique", secondary.unique_visitors || 0, "int");
+                /* Secondary stats — match API field names */
+                setStat("unique", secondary.unique_visitors_today || 0, "int");
                 setStat("duration", secondary.avg_session_duration || 0, "duration");
                 setStat("bounceRate", secondary.bounce_rate || 0, "percent");
                 setStat("conversion", secondary.conversion_rate || 0, "percent");
-                setStat("returning", secondary.returning_visitors || 0, "int");
-                setStat("newVisitors", secondary.new_visitors || 0, "int");
+                setStat("returning", secondary.returning_visitors_today || 0, "int");
+                setStat("newVisitors", secondary.new_visitors_today || 0, "int");
+
+                /* Dynamic comparisons vs yesterday */
+                var comparisons = [
+                    { key: "visitors",    today: today.visitors,    yest: yesterday ? yesterday.visitors : null },
+                    { key: "live",        today: overview.live_visitors, yest: null },
+                    { key: "pageViews",   today: today.page_views,  yest: yesterday ? yesterday.page_views : null },
+                    { key: "sessions",    today: today.sessions,    yest: yesterday ? yesterday.sessions : null },
+                    { key: "unique",      today: secondary.unique_visitors_today, yest: null },
+                    { key: "duration",    today: today.avg_duration, yest: yesterday ? yesterday.avg_duration : null, isDuration: true },
+                    { key: "bounceRate",  today: today.bounce_rate, yest: yesterday ? yesterday.bounce_rate : null, invert: true },
+                    { key: "conversion",  today: secondary.conversion_rate, yest: null },
+                    { key: "returning",   today: secondary.returning_visitors_today, yest: null },
+                    { key: "newVisitors", today: secondary.new_visitors_today, yest: null }
+                ];
+
+                comparisons.forEach(function (c) {
+                    var change = calcChange(c.today || 0, c.yest);
+                    if (change) {
+                        var isPositive = c.invert ? !change.positive : change.positive;
+                        setBadge(c.key, change.pct, isPositive);
+                        if (c.isDuration) {
+                            setCompare(c.key, 'vs <strong>' + formatDuration(c.yest || 0) + '</strong> yesterday');
+                        } else {
+                            setCompare(c.key, 'vs <strong>' + formatInt(c.yest || 0) + '</strong> yesterday');
+                        }
+                    } else {
+                        setBadge(c.key, null);
+                        if (c.key === "live") {
+                            setCompare(c.key, "real-time");
+                        } else {
+                            setCompare(c.key, "no prior data");
+                        }
+                    }
+                });
 
                 /* Sparklines from trends */
                 var trendData = trends.trends || [];
@@ -924,9 +949,10 @@
                 var globeCountries = document.getElementById("globe-countries");
                 var globePages = document.getElementById("globe-pages");
                 if (globeVisitors) globeVisitors.textContent = overview.live_visitors || 0;
-                if (globeCountries) globeCountries.textContent = secondary.countries || 0;
+                if (globeCountries) globeCountries.textContent = 0;
                 if (globePages) {
-                    var pagesPerMin = hourlyData.length > 0 ? Math.round((hourlyData[hourlyData.length - 1].page_views || 0) / 60) : 0;
+                    var totalHourlyViews = hourlyData.reduce(function (sum, d) { return sum + (d.visits || 0); }, 0);
+                    var pagesPerMin = hourlyData.length > 0 ? Math.round(totalHourlyViews / 60) : 0;
                     globePages.textContent = pagesPerMin;
                 }
 
@@ -939,39 +965,32 @@
         }
 
         /* =============================================================
-           11. ACTIVITY FEED — real events with fallback to mock
+           11. ACTIVITY FEED — real events from API
            ============================================================= */
         var feedList = document.getElementById("feed-list");
-        var feedEvents = [];
+        var seenEventIds = {};
         var eventTypes = {
-            page_view: { type: "page", icon: "\uD83D\uDCC4", prefix: "Viewed " },
-            button_click: { type: "click", icon: "\uD83D\uDC46", prefix: "Clicked " },
-            form_submit: { type: "form", icon: "\uD83D\uDCE7", prefix: "Submitted " },
-            download: { type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
-            external_link: { type: "link", icon: "\uD83D\uDD17", prefix: "Opened " },
-            page_leave: { type: "exit", icon: "\u274C", prefix: "Left from " }
+            page_view:    { type: "page",    icon: "\uD83D\uDCC4", prefix: "Viewed " },
+            button_click: { type: "click",   icon: "\uD83D\uDC46", prefix: "Clicked " },
+            form_submit:  { type: "form",    icon: "\uD83D\uDCE7", prefix: "Submitted " },
+            download:     { type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
+            link_click:   { type: "link",    icon: "\uD83D\uDD17", prefix: "Opened " },
+            file_download:{ type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
+            page_leave:   { type: "exit",    icon: "\u274C",       prefix: "Left " }
         };
-
-        var mockFallback = [
-            { type: "entry",   icon: "\uD83D\uDFE2", text: "User entered from Chrome",       city: "New York",  device: "Desktop", page: "/",          browser: "Chrome" },
-            { type: "page",    icon: "\uD83D\uDCC4", text: "Opened /pricing page",           city: "London",    device: "Mobile",  page: "/pricing",   browser: "Safari" },
-            { type: "click",   icon: "\uD83D\uDC46", text: "Clicked \"Buy Now\" button",     city: "Tokyo",     device: "Desktop", page: "/pricing",   browser: "Firefox" },
-            { type: "form",    icon: "\uD83D\uDCE7", text: "Submitted contact form",         city: "Sydney",    device: "Tablet",  page: "/contact",   browser: "Chrome" },
-            { type: "download",icon: "\u2B07\uFE0F", text: "Downloaded report.pdf",          city: "Berlin",    device: "Desktop", page: "/resources", browser: "Edge" },
-            { type: "link",    icon: "\uD83D\uDD17", text: "Clicked external link",          city: "Paris",     device: "Mobile",  page: "/about",     browser: "Safari" },
-            { type: "exit",    icon: "\u274C",       text: "Left the website",               city: "Mumbai",    device: "Desktop", page: "/pricing",   browser: "Chrome" }
-        ];
 
         function addFeedItem(ev, time, prepend) {
             if (!feedList) return;
             var item = document.createElement("div");
             item.className = "feed-item";
+            var pageShort = ev.page || "/";
+            try { pageShort = new URL(pageShort).pathname; } catch(e) {}
             item.innerHTML =
                 '<div class="feed-icon ' + ev.type + '">' + ev.icon + '</div>' +
                 '<div class="feed-content">' +
                     '<div class="feed-text">' + ev.text + '</div>' +
                     '<div class="feed-meta">' +
-                        '<span>' + ev.city + '</span>' +
+                        '<span>' + pageShort + '</span>' +
                         '<span class="feed-meta-dot"></span>' +
                         '<span>' + ev.browser + '</span>' +
                         '<span class="feed-meta-dot"></span>' +
@@ -985,26 +1004,29 @@
         }
 
         function pollEvents() {
-            apiFetch("/api/stats/events?summary=true").then(function (data) {
-                var events = data.events || data.recent || [];
-                if (events.length === 0) {
-                    events = mockFallback;
-                }
-                events.forEach(function (ev, i) {
+            apiFetch("/api/stats/events").then(function (data) {
+                var events = data.events || [];
+                if (events.length === 0) return;
+
+                events.slice().reverse().forEach(function (ev, i) {
+                    if (seenEventIds[ev.id]) return;
+                    seenEventIds[ev.id] = true;
                     var mapped = eventTypes[ev.event_type] || { type: "page", icon: "\uD83D\uDCC4", prefix: "" };
+                    var target = ev.event_target || "";
+                    var text = mapped.prefix + (target || "page");
+                    if (ev.event_type === "page_leave") {
+                        text = "Left page";
+                    }
                     addFeedItem({
                         type: mapped.type,
                         icon: mapped.icon,
-                        text: mapped.prefix + (ev.event_target || ev.page_url || "page"),
-                        city: ev.city || "Unknown",
-                        device: ev.device_type || "Desktop",
-                        page: ev.page_url || "/",
-                        browser: ev.browser || "Unknown"
-                    }, i === 0 ? "Just now" : (i * 3) + "s ago", i === 0);
+                        text: text,
+                        browser: ev.browser || "Unknown",
+                        device: ev.device_type || "Unknown",
+                        page: ev.page_url || "/"
+                    }, i === 0 ? "Just now" : (i * 5) + "s ago", true);
                 });
-            }).catch(function () {
-                /* Keep existing feed on error */
-            });
+            }).catch(function () {});
         }
 
         /* =============================================================
