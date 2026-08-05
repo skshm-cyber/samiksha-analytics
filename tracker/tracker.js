@@ -2,7 +2,7 @@
  * Samiksha Analytics Tracker
  * 
  * How to use: Add this to any page on your website:
- *   <script src="https://skshm-cyber.github.io/tracker/tracker.js"></script>
+ *   <script src="https://skshm-cyber.github.io/samiksha-analytics/tracker.js"></script>
  * 
  * It will automatically:
  *   1. Identify the visitor (using localStorage)
@@ -214,16 +214,14 @@
         // We send this as a regular fetch with keepalive so it survives page unload
         var payload = JSON.stringify(leaveData);
         if (navigator.sendBeacon) {
-            // Send visit update (with final scroll and time) via a separate beacon to /api/track
-            // We also send the page_leave event to /api/event
-            navigator.sendBeacon(API_BASE + "/api/event", JSON.stringify({
-                visitor_id: visitorId,
-                session_id: sessionId,
-                timestamp: new Date().toISOString(),
-                event_type: "page_leave",
-                event_target: "",
-                page_url: window.location.href,
-            }));
+            navigator.sendBeacon(API_BASE + "/api/event", payload);
+        } else {
+            fetch(API_BASE + "/api/event", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: payload,
+                keepalive: true,
+            });
         }
     });
 
