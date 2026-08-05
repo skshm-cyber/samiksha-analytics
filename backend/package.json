@@ -1,1 +1,1 @@
-{"name":"stub","scripts":{"deploy":"echo ok}}
+{"name":"stub","version":"1.0.0","scripts":{"deploy":"echo ok"}}
