@@ -1,0 +1,17 @@
+name = "samiksha-analytics-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Environment Variables (set via `wrangler secret put` or dashboard) ──
+# SUPABASE_URL          — your Supabase project URL
+# SUPABASE_ANON_KEY     — your Supabase anon/public key
+# CORS_ORIGINS          — comma-separated allowed origins
+
+# ── Development ──
+[env.dev]
+name = "samiksha-analytics-api-dev"
+
+# ── Production ──
+[env.production]
+name = "samiksha-analytics-api"
