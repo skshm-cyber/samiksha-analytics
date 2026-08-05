@@ -10,6 +10,7 @@ export function corsHeaders(env: Env, origin: string | null): Record<string, str
     allowed.includes(origin) ||
     origin.endsWith(".workers.dev") ||
     origin.endsWith(".pages.dev") ||
+    origin.endsWith("github.io") ||
     origin.includes("localhost");
 
   return {
