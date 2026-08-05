@@ -2,7 +2,7 @@
  * Samiksha Analytics Tracker
  * 
  * How to use: Add this to any page on your website:
- *   <script src="http://localhost:8000/tracker.js"></script>
+ *   <script src="https://skshm-cyber.github.io/tracker/tracker.js"></script>
  * 
  * It will automatically:
  *   1. Identify the visitor (using localStorage)
@@ -23,7 +23,7 @@
     // Set window.SAMIKSHA_API_URL before loading this script to override.
     // Example: <script>window.SAMIKSHA_API_URL = "https://abc123.ngrok.io";</script>
     var API_BASE = window.SAMIKSHA_API_URL
-        || (window.location.protocol + "//" + window.location.hostname + ":8000");
+        || "https://samiksha-analytics1.tewarisaksham20.workers.dev";
 
     // =======================================================================
     // HELPER: Generate a random ID (UUID v4)
