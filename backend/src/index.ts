@@ -117,7 +117,7 @@ export default {
       if (path === "/api/stats/campaigns" && method === "GET") {
         return await handleCampaigns(request, env);
       }
-      if (path === "/api/stats/journeys" && method === "GET") {
+if (path === "/api/stats/journeys" && method === "GET") {
         return await handleJourneys(request, env);
       }
 
