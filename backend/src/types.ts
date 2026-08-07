@@ -22,6 +22,10 @@ export interface TrackPayload {
   is_first_visit?: number;
   scroll_percentage?: number;
   time_on_page?: number;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
 }
 
 export interface EventPayload {
@@ -33,4 +37,5 @@ export interface EventPayload {
   page_url?: string;
   time_on_page?: number;
   scroll_percentage?: number;
+  properties?: Record<string, unknown>;
 }

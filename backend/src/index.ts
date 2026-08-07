@@ -20,6 +20,12 @@ import {
   handleCountries,
   handleCities,
 } from "./routes/analytics";
+import {
+  handleCards,
+  handleFunnel,
+  handleCampaigns,
+  handleJourneys,
+} from "./routes/analyticsBusiness";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -85,8 +91,7 @@ export default {
         return await handleTrends(request, env);
       }
       if (path === "/api/stats/events" && method === "GET") {
-        // Check if it's /api/stats/events/summary
-        if (url.searchParams.has("summary") || path === "/api/stats/events/summary") {
+        if (url.searchParams.has("summary")) {
           return await handleEventsSummary(request, env);
         }
         return await handleEvents(request, env);
@@ -102,6 +107,18 @@ export default {
       }
       if (path === "/api/stats/cities" && method === "GET") {
         return await handleCities(request, env);
+      }
+      if (path === "/api/stats/cards" && method === "GET") {
+        return await handleCards(request, env);
+      }
+      if (path === "/api/stats/funnel" && method === "GET") {
+        return await handleFunnel(request, env);
+      }
+      if (path === "/api/stats/campaigns" && method === "GET") {
+        return await handleCampaigns(request, env);
+      }
+      if (path === "/api/stats/journeys" && method === "GET") {
+        return await handleJourneys(request, env);
       }
 
       // Health check

@@ -449,6 +449,214 @@
             white-space: nowrap;
             flex-shrink: 0;
         }
+
+        /* =============================================================
+           SECTION 4: TRAFFIC — main chart (DataFast style)
+           ============================================================= */
+        .chart-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            margin-bottom: var(--sp-8);
+            transition: all 0.3s var(--ease);
+        }
+        .chart-panel:hover { background: var(--bg-card-hover); border-color: var(--border-hover); }
+        .chart-top {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: var(--sp-4); flex-wrap: wrap; margin-bottom: var(--sp-5);
+        }
+        .chart-value {
+            font-size: 2.5rem; font-weight: 700; letter-spacing: -0.03em;
+            line-height: 1; color: var(--text-primary);
+        }
+        .chart-label { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 6px; }
+        .chart-tabs {
+            display: flex; align-items: center;
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 3px; gap: 2px;
+        }
+        .chart-btn {
+            padding: 5px 12px; border-radius: 9px;
+            font-size: 0.75rem; font-weight: 500; color: var(--text-tertiary);
+            transition: all var(--duration) var(--ease); white-space: nowrap;
+        }
+        .chart-btn:hover { color: var(--text-secondary); }
+        .chart-btn.active { background: var(--bg-elevated); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+        .chart-wrap { position: relative; height: 300px; }
+
+        /* =============================================================
+           SECTION 5: BREAKDOWN LISTS — Referrers / Pages / Audience
+           ============================================================= */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-4);
+            margin-bottom: var(--sp-8);
+        }
+        .breakdown-grid.grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+        .list-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            transition: all 0.3s var(--ease);
+        }
+        .list-panel:hover { background: var(--bg-card-hover); border-color: var(--border-hover); }
+        .list-body {
+            display: flex; flex-direction: column; gap: 2px;
+            max-height: 420px; overflow-y: auto;
+        }
+        .list-item {
+            display: flex; align-items: center; gap: var(--sp-3);
+            padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-sm);
+            transition: background var(--duration) var(--ease);
+        }
+        .list-item:hover { background: var(--bg-card-hover); }
+        .list-icon {
+            width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; background: var(--bg-elevated); overflow: hidden;
+        }
+        .list-icon img { width: 16px; height: 16px; }
+        .list-icon .browser-letter { font-weight: 700; font-size: 0.8125rem; }
+        .list-main { flex: 1; min-width: 0; }
+        .list-name {
+            font-size: 0.8125rem; font-weight: 500; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 5px;
+        }
+        .list-bar {
+            height: 3px; border-radius: var(--radius-full);
+            background: var(--bg-elevated); overflow: hidden;
+        }
+        .list-fill {
+            height: 100%; border-radius: var(--radius-full);
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            transition: width 0.6s var(--ease);
+        }
+        .list-value {
+            font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);
+            flex-shrink: 0; font-variant-numeric: tabular-nums;
+        }
+        .empty-row {
+            padding: var(--sp-8) var(--sp-3); text-align: center;
+            color: var(--text-tertiary); font-size: 0.8125rem;
+        }
+
+        @media (max-width: 1200px) {
+            .breakdown-grid.grid-3 { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .breakdown-grid, .breakdown-grid.grid-3 { grid-template-columns: 1fr; }
+            .chart-value { font-size: 2rem; }
+            .chart-wrap { height: 220px; }
+        }
+
+        /* =============================================================
+           SECTION 7: FUNNEL — conversion stages
+           ============================================================= */
+        .funnel-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            margin-bottom: var(--sp-8);
+        }
+        .funnel-step { margin-bottom: var(--sp-5); }
+        .funnel-step:last-child { margin-bottom: 0; }
+        .funnel-row {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .funnel-label { font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); }
+        .funnel-meta { font-size: 0.8125rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+        .funnel-track { height: 8px; border-radius: var(--radius-full); background: var(--bg-elevated); overflow: hidden; }
+        .funnel-fill {
+            height: 100%; border-radius: var(--radius-full);
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+        }
+        .funnel-conversion {
+            display: flex; align-items: center; gap: var(--sp-2);
+            padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-md);
+            background: var(--green-dim); color: var(--green);
+            font-size: 0.8125rem; font-weight: 600; margin-top: var(--sp-4);
+        }
+
+        /* =============================================================
+           SECTION 8: CARD PERFORMANCE table
+           ============================================================= */
+        .table-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            margin-bottom: var(--sp-8);
+            overflow-x: auto;
+        }
+        .table-panel table { width: 100%; border-collapse: collapse; min-width: 560px; }
+        .table-panel thead th {
+            font-size: 0.6875rem; font-weight: 600; color: var(--text-tertiary);
+            text-transform: uppercase; letter-spacing: 0.05em; text-align: left;
+            padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .table-panel tbody td {
+            font-size: 0.8125rem; color: var(--text-secondary);
+            padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid rgba(255,255,255,0.03);
+            white-space: nowrap; font-variant-numeric: tabular-nums;
+        }
+        .table-panel tbody tr:hover { background: var(--bg-card-hover); }
+        .table-panel .badge-pill {
+            display: inline-block; padding: 2px 8px; border-radius: var(--radius-full);
+            font-size: 0.6875rem; font-weight: 600;
+            background: var(--violet-dim); color: var(--violet);
+        }
+        .table-panel .price-cell { color: var(--text-primary); font-weight: 600; }
+        .card-rank { color: var(--text-tertiary); }
+        .rate-hot { color: var(--green); font-weight: 600; }
+        .rate-cold { color: var(--text-tertiary); }
+
+        /* =============================================================
+           SECTION 9: CAMPAIGNS + JOURNEYS
+           ============================================================= */
+        .journey-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            margin-bottom: var(--sp-4);
+        }
+        .journey-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: var(--sp-3);
+        }
+        .journey-meta { font-size: 0.6875rem; color: var(--text-tertiary); }
+        .timeline { position: relative; padding-left: 20px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 5px; top: 4px; bottom: 4px;
+            width: 1px; background: var(--border);
+        }
+        .tl-item { position: relative; padding: 4px 0 10px 0; }
+        .tl-dot {
+            position: absolute; left: -18px; top: 7px;
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--bg-elevated); border: 2px solid var(--accent);
+        }
+        .tl-item.page .tl-dot { border-color: var(--blue); }
+        .tl-item.event .tl-dot { border-color: var(--violet); }
+        .tl-item.cta .tl-dot, .tl-item.goal .tl-dot { border-color: var(--green); }
+        .tl-time { font-size: 0.625rem; color: var(--text-tertiary); }
+        .tl-title { font-size: 0.75rem; color: var(--text-primary); font-weight: 500; }
+        .tl-sub { font-size: 0.6875rem; color: var(--text-tertiary); }
+        .tl-tag {
+            display: inline-block; margin-left: 6px; padding: 1px 7px;
+            border-radius: var(--radius-full); font-size: 0.625rem; font-weight: 600;
+            background: var(--violet-dim); color: var(--violet);
+        }
+        .tl-tag.cta { background: var(--green-dim); color: var(--green); }
+        .tl-tag.plan { background: var(--yellow-dim); color: var(--yellow); }
     </style>
 </head>
 <body>
@@ -661,16 +869,122 @@
                 </div>
             </div>
         </div>
-        <div id="section-journey"></div>
-        <div id="section-heat"></div>
-        <div id="section-traffic"></div>
-        <div id="section-pages"></div>
-        <div id="section-events"></div>
-        <div id="section-behaviour"></div>
-        <div id="section-health"></div>
-        <div id="section-insights"></div>
-        <div id="section-alerts"></div>
+        <!-- ===================== SECTION 4: TRAFFIC CHART ===================== -->
+        <div id="section-chart">
+            <div class="section-header">
+                <div class="section-title">Traffic</div>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-top">
+                    <div>
+                        <div class="chart-value" id="chart-value">0</div>
+                        <div class="chart-label" id="chart-label">Visitors over the last <span id="chart-period">14</span> days</div>
+                    </div>
+                    <div class="chart-tabs" id="chart-tabs">
+                        <button class="chart-btn active" data-metric="visitors">Visitors</button>
+                        <button class="chart-btn" data-metric="page_views">Page views</button>
+                        <button class="chart-btn" data-metric="sessions">Sessions</button>
+                    </div>
+                </div>
+                <div class="chart-wrap"><canvas id="main-chart"></canvas></div>
+            </div>
+        </div>
 
+        <!-- ===================== SECTION 5: TRAFFIC SOURCES ===================== -->
+        <div id="section-traffic">
+            <div class="section-header">
+                <div class="section-title">Traffic Sources</div>
+            </div>
+            <div class="breakdown-grid">
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Top Referrers</div>
+                        <div class="feed-count" id="referrer-count">—</div>
+                    </div>
+                    <div class="list-body" id="referrer-list"></div>
+                </div>
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Top Pages</div>
+                        <div class="feed-count" id="pages-count">—</div>
+                    </div>
+                    <div class="list-body" id="pages-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 6: AUDIENCE ===================== -->
+        <div id="section-audience">
+            <div class="section-header">
+                <div class="section-title">Audience</div>
+            </div>
+            <div class="breakdown-grid grid-3">
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Countries</div>
+                        <div class="feed-count" id="countries-count">—</div>
+                    </div>
+                    <div class="list-body" id="countries-list"></div>
+                </div>
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Devices</div>
+                        <div class="feed-count" id="devices-count">—</div>
+                    </div>
+                    <div class="list-body" id="devices-list"></div>
+                </div>
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Browsers</div>
+                        <div class="feed-count" id="browsers-count">—</div>
+                    </div>
+                    <div class="list-body" id="browsers-list"></div>
+                </div>
+            </div>
+        </div>
+
+    <!-- ===================== SECTION 7: CONVERSION FUNNEL ===================== -->
+        <div id="section-funnel">
+            <div class="section-header">
+                <div class="section-title">Conversion Funnel</div>
+            </div>
+            <div class="funnel-panel" id="funnel-panel">
+                <div style="padding: var(--sp-6); text-align:center; color:var(--text-tertiary); font-size:0.8125rem;">loading…</div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 8: READING PERFORMANCE ===================== -->
+        <div id="section-cards">
+            <div class="section-header">
+                <div class="section-title">Reading Performance — which cards people click</div>
+            </div>
+            <div class="table-panel">
+                <div style="padding: var(--sp-6); text-align:center; color:var(--text-tertiary); font-size:0.8125rem;">loading…</div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 9: CAMPAIGNS ===================== -->
+        <div id="section-campaigns">
+            <div class="section-header">
+                <div class="section-title">Campaign Sources (UTM)</div>
+            </div>
+            <div class="breakdown-grid">
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Top Sources</div>
+                        <div class="feed-count" id="campaign-count">—</div>
+                    </div>
+                    <div class="list-body" id="campaign-list"></div>
+                </div>
+                <div class="list-panel" style="max-height:500px; overflow-y:auto;">
+                    <div class="feed-header">
+                        <div class="feed-title">Recent Journeys</div>
+                        <div class="feed-count" id="journey-count">—</div>
+                    </div>
+                    <div id="journey-list"></div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- =============================================================
@@ -700,6 +1014,8 @@
                     else if (range === "30d") currentDays = 30;
                     else if (range === "90d") currentDays = 90;
                     fetchAll();
+                    fetchBreakdowns(currentDays);
+                    fetchBusiness();
                 });
             });
         }
@@ -865,7 +1181,7 @@
                 apiFetch("/api/stats/hourly"),
                 apiFetch("/api/stats/live"),
                 apiFetch("/api/stats/events?summary=true"),
-                apiFetch("/api/stats/daily?days=" + Math.max(currentDays, 2))
+                apiFetch("/api/stats/daily?days=" + Math.max(currentDays, 14))
             ]).then(function (results) {
                 var overview = results[0] || {};
                 var secondary = results[1] || {};
@@ -959,6 +1275,11 @@
                 /* Feed count */
                 var feedCount = document.getElementById("feed-count");
                 if (feedCount) feedCount.textContent = (overview.live_visitors || 0) + " active visitors";
+
+                /* Store for main chart */
+                currentPeriod = Math.max(currentDays, 14);
+                chartData = dailyArr;
+                renderChart();
             }).catch(function (err) {
                 console.error("Failed to fetch stats:", err);
             });
@@ -970,14 +1291,31 @@
         var feedList = document.getElementById("feed-list");
         var seenEventIds = {};
         var eventTypes = {
-            page_view:    { type: "page",    icon: "\uD83D\uDCC4", prefix: "Viewed " },
-            button_click: { type: "click",   icon: "\uD83D\uDC46", prefix: "Clicked " },
-            form_submit:  { type: "form",    icon: "\uD83D\uDCE7", prefix: "Submitted " },
-            download:     { type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
-            link_click:   { type: "link",    icon: "\uD83D\uDD17", prefix: "Opened " },
-            file_download:{ type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
-            page_leave:   { type: "exit",    icon: "\u274C",       prefix: "Left " }
+            page_view:        { type: "page",   icon: "\uD83D\uDCC4", prefix: "Viewed " },
+            button_click:     { type: "click",  icon: "\uD83D\uDC46", prefix: "Clicked " },
+            form_submit:      { type: "form",   icon: "\uD83D\uDCE7", prefix: "Submitted " },
+            download:         { type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
+            link_click:       { type: "link",   icon: "\uD83D\uDD17", prefix: "Opened " },
+            file_download:    { type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
+            page_leave:       { type: "exit",   icon: "\u274C",       prefix: "Left" },
+            pricing_card_click: { type: "card", icon: "\uD83C\uDFB4", prefix: "" },
+            cta_click:        { type: "cta",    icon: "\uD83D\uDC8C", prefix: "" },
+            section_view:     { type: "form",   icon: "\uD83C\uDFAF", prefix: "Reached section " },
+            scroll_milestone: { type: "click",  icon: "\u2B07",       prefix: "Scrolled " }
         };
+
+        function formatTime(ts) {
+            if (!ts) return "";
+            var d = new Date(ts);
+            if (isNaN(d)) return "";
+            var now = new Date();
+            var diff = Math.max(0, Math.round((now - d) / 1000));
+            if (diff < 5) return "just now";
+            if (diff < 60) return diff + "s ago";
+            if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+            if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+            return d.toLocaleDateString();
+        }
 
         function addFeedItem(ev, time, prepend) {
             if (!feedList) return;
@@ -1008,14 +1346,21 @@
                 var events = data.events || [];
                 if (events.length === 0) return;
 
-                events.slice().reverse().forEach(function (ev, i) {
+                events.slice().reverse().forEach(function (ev, idx) {
                     if (seenEventIds[ev.id]) return;
                     seenEventIds[ev.id] = true;
                     var mapped = eventTypes[ev.event_type] || { type: "page", icon: "\uD83D\uDCC4", prefix: "" };
                     var target = ev.event_target || "";
-                    var text = mapped.prefix + (target || "page");
-                    if (ev.event_type === "page_leave") {
-                        text = "Left page";
+                    var text = "";
+                    if (ev.event_type === "pricing_card_click" || ev.event_type === "cta_click") {
+                        var props = ev.properties || {};
+                        var name = props.name || props.plan || target;
+                        text = (ev.event_type === "cta_click" ? "\uD83D\uDC8C Booked " : "\uD83C\uDFB4 Selected ")
+                            + name
+                            + (props.price ? "  ₹" + props.price : "");
+                    } else {
+                        text = mapped.prefix + (target || "page");
+                        if (ev.event_type === "page_leave") text = "Left page";
                     }
                     addFeedItem({
                         type: mapped.type,
@@ -1024,7 +1369,7 @@
                         browser: ev.browser || "Unknown",
                         device: ev.device_type || "Unknown",
                         page: ev.page_url || "/"
-                    }, i === 0 ? "Just now" : (i * 5) + "s ago", true);
+                    }, formatTime(ev.timestamp), true);
                 });
             }).catch(function () {});
         }
@@ -1196,12 +1541,462 @@
         })();
 
         /* =============================================================
-           13. INIT
+            13. TRAFFIC CHART + BREAKDOWN SECTIONS
+           ============================================================= */
+        var chartData = [];
+        var currentChartMetric = "visitors";
+        var currentPeriod = 14;
+        var mainChart = null;
+
+        function escapeHtml(s) {
+            return String(s === null || s === undefined ? "" : s)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+
+        function hostLabel(ref) {
+            if (!ref) return "Direct";
+            var h = ref;
+            try { h = new URL(ref).hostname; } catch (e) {}
+            return h.replace(/^www\./, "") || "Direct";
+        }
+
+        function displayPage(u) {
+            try {
+                var url = new URL(u);
+                return url.pathname === "/" ? url.hostname : url.pathname;
+            } catch (e) { return u || "/"; }
+        }
+
+        function shortDate(iso) {
+            var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            var d = new Date(iso);
+            return d.getDate() + " " + months[d.getMonth()];
+        }
+
+        function emptyRow(text) {
+            return '<div class="empty-row">' + escapeHtml(text) + '</div>';
+        }
+
+        function itemRow(icon, name, value, max) {
+            var el = document.createElement("div");
+            el.className = "list-item";
+            var bar = max > 0 ? Math.round((value / max) * 100) : 0;
+            el.innerHTML =
+                '<div class="list-icon">' + icon + '</div>' +
+                '<div class="list-main">' +
+                    '<div class="list-name">' + escapeHtml(name) + '</div>' +
+                    '<div class="list-bar"><div class="list-fill" style="width:' + bar + '%"></div></div>' +
+                '</div>' +
+                '<div class="list-value">' + formatInt(value) + '</div>';
+            return el;
+        }
+
+        var FLAGS = {
+            "india": "🇮🇳", "united states": "🇺🇸", "united states of america": "🇺🇸", "usa": "🇺🇸",
+            "united kingdom": "🇬🇧", "uk": "🇬🇧", "germany": "🇩🇪", "france": "🇫🇷", "canada": "🇨🇦",
+            "australia": "🇦🇺", "brazil": "🇧🇷", "japan": "🇯🇵", "china": "🇨🇳", "russia": "🇷🇺",
+            "italy": "🇮🇹", "spain": "🇪🇸", "netherlands": "🇳🇱", "switzerland": "🇨🇭", "sweden": "🇸🇪",
+            "norway": "🇳🇴", "finland": "🇫🇮", "denmark": "🇩🇰", "poland": "🇵🇱", "portugal": "🇵🇹",
+            "belgium": "🇧🇪", "austria": "🇦🇹", "ireland": "🇮🇪", "greece": "🇬🇷", "turkey": "🇹🇷",
+            "israel": "🇮🇱", "uae": "🇦🇪", "united arab emirates": "🇦🇪", "saudi arabia": "🇸🇦",
+            "qatar": "🇶🇦", "singapore": "🇸🇬", "malaysia": "🇲🇾", "indonesia": "🇮🇩", "thailand": "🇹🇭",
+            "vietnam": "🇻🇳", "philippines": "🇵🇭", "south korea": "🇰🇷", "south africa": "🇿🇦",
+            "nigeria": "🇳🇬", "egypt": "🇪🇬", "kenya": "🇰🇪", "argentina": "🇦🇷", "mexico": "🇲🇽",
+            "chile": "🇨🇱", "colombia": "🇨🇴", "new zealand": "🇳🇿", "pakistan": "🇵🇰",
+            "bangladesh": "🇧🇩", "nepal": "🇳🇵", "sri lanka": "🇱🇰", "ukraine": "🇺🇦", "romania": "🇷🇴"
+        };
+        function flagFor(name) {
+            return FLAGS[String(name || "").toLowerCase().trim()] || "🌐";
+        }
+
+        function renderReferrers(referrers) {
+            var list = document.getElementById("referrer-list");
+            var countEl = document.getElementById("referrer-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = referrers.reduce(function (a, r) { return a + (r.visits || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " visits";
+            if (referrers.length === 0) { list.innerHTML = emptyRow("No referrers in this period."); return; }
+            var max = referrers[0].visits || 1;
+            referrers.forEach(function (r) {
+                var icon = /^https?:/i.test(r.referrer || "")
+                    ? '<img src="https://www.google.com/s2/favicons?domain=' + encodeURIComponent(hostLabel(r.referrer)) + '&sz=32" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+                    : '<span>🌐</span>';
+                list.appendChild(itemRow(icon, r.referrer ? hostLabel(r.referrer) : "Direct", r.visits, max));
+            });
+        }
+
+        function renderPages(pages) {
+            var list = document.getElementById("pages-list");
+            var countEl = document.getElementById("pages-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = pages.reduce(function (a, p) { return a + (p.visits || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " views";
+            if (pages.length === 0) { list.innerHTML = emptyRow("No pages in this period."); return; }
+            var max = pages[0].visits || 1;
+            pages.forEach(function (p) {
+                list.appendChild(itemRow('<span>📄</span>', displayPage(p.page_url), p.visits, max));
+            });
+        }
+
+        function renderCountries(countries) {
+            var list = document.getElementById("countries-list");
+            var countEl = document.getElementById("countries-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = countries.reduce(function (a, c) { return a + (c.count || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " visits";
+            if (countries.length === 0) { list.innerHTML = emptyRow("No location data in this period."); return; }
+            var max = countries[0].count || 1;
+            countries.forEach(function (c) {
+                list.appendChild(itemRow('<span>' + flagFor(c.country) + '</span>', c.country || "Unknown", c.count, max));
+            });
+        }
+
+        var DEVICE_ICONS = { desktop: "💻", mobile: "📱", tablet: "📖" };
+        function renderDevices(devices) {
+            var list = document.getElementById("devices-list");
+            var countEl = document.getElementById("devices-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = devices.reduce(function (a, d) { return a + (d.count || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " sessions";
+            if (devices.length === 0) { list.innerHTML = emptyRow("No device data in this period."); return; }
+            var max = devices[0].count || 1;
+            devices.forEach(function (d) {
+                var key = String(d.device_type || "").toLowerCase();
+                list.appendChild(itemRow('<span>' + (DEVICE_ICONS[key] || "🖥️") + '</span>', d.device_type || "Unknown", d.count, max));
+            });
+        }
+
+        var BROWSER_COLORS = {
+            chrome: "#3b82f6", firefox: "#f97316", safari: "#0ea5e9",
+            edge: "#38bdf8", opera: "#ef4444", "internet explorer": "#2563eb"
+        };
+        function renderBrowsers(browsers) {
+            var list = document.getElementById("browsers-list");
+            var countEl = document.getElementById("browsers-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = browsers.reduce(function (a, b) { return a + (b.count || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " sessions";
+            if (browsers.length === 0) { list.innerHTML = emptyRow("No browser data in this period."); return; }
+            var max = browsers[0].count || 1;
+            browsers.forEach(function (b) {
+                var key = String(b.browser || "").toLowerCase();
+                var color = BROWSER_COLORS[key] || "#a1a1aa";
+                var letter = String(b.browser || "?").charAt(0).toUpperCase();
+                list.appendChild(itemRow('<span class="browser-letter" style="color:' + color + '">' + escapeHtml(letter) + '</span>', b.browser || "Unknown", b.count, max));
+            });
+        }
+
+        function fetchBreakdowns(days) {
+            Promise.all([
+                apiFetch("/api/stats/referrers?days=" + days + "&limit=10"),
+                apiFetch("/api/stats/pages?days=" + days + "&limit=10"),
+                apiFetch("/api/stats/countries?days=" + days + "&limit=12"),
+                apiFetch("/api/stats/devices?days=" + days),
+                apiFetch("/api/stats/browsers?days=" + days)
+            ]).then(function (res) {
+                renderReferrers(res[0].referrers || []);
+                renderPages(res[1].pages || []);
+                renderCountries(res[2].countries || []);
+                renderDevices(res[3].devices || []);
+                renderBrowsers(res[4].browsers || []);
+            }).catch(function (err) {
+                console.error("Failed to fetch breakdown sections:", err);
+            });
+        }
+
+        function renderChart() {
+            var canvas = document.getElementById("main-chart");
+            if (!canvas || typeof Chart === "undefined") return;
+            var metric = currentChartMetric;
+            var series = (chartData || []).map(function (d) { return { date: d.date, value: d[metric] || 0 }; });
+            var total = series.reduce(function (a, d) { return a + d.value; }, 0);
+            var valueEl = document.getElementById("chart-value");
+            var periodEl = document.getElementById("chart-period");
+            var labelEl = document.getElementById("chart-label");
+            if (valueEl) valueEl.textContent = formatInt(total);
+            if (periodEl) periodEl.textContent = String(currentPeriod);
+            if (labelEl) {
+                labelEl.textContent = (metric === "visitors" ? "Visitors" : metric === "page_views" ? "Page views" : "Sessions") +
+                    " over the last " + currentPeriod + " days";
+            }
+
+            var colors = { visitors: "#8b5cf6", page_views: "#3b82f6", sessions: "#06b6d4" };
+            var color = colors[metric] || "#8b5cf6";
+            if (mainChart) mainChart.destroy();
+            var ctx = canvas.getContext("2d");
+            var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, hexToRgba(color, 0.22));
+            gradient.addColorStop(1, hexToRgba(color, 0));
+            mainChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: (chartData || []).map(function (d) { return shortDate(d.date); }),
+                    datasets: [{
+                        data: series.map(function (d) { return d.value; }),
+                        borderColor: color,
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: gradient,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        pointHoverBackgroundColor: color
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "rgba(9, 9, 11, 0.92)",
+                            borderColor: "rgba(255, 255, 255, 0.1)",
+                            borderWidth: 1,
+                            titleColor: "#fafafa",
+                            bodyColor: "#fafafa",
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function (c) {
+                                    return " " + formatInt(c.parsed.y) + " " + (metric === "page_views" ? "views" : metric);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { color: "#52525b", font: { size: 11 }, maxRotation: 0, autoSkipPadding: 20 }
+                        },
+                        y: {
+                            border: { display: false },
+                            grid: { color: "rgba(255, 255, 255, 0.05)" },
+                            ticks: {
+                                color: "#52525b", font: { size: 11 },
+                                maxTicksLimit: 6, callback: function (v) { return formatInt(v); }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        var chartTabs = document.getElementById("chart-tabs");
+        if (chartTabs) {
+            chartTabs.querySelectorAll(".chart-btn").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    chartTabs.querySelectorAll(".chart-btn").forEach(function (b) { b.classList.remove("active"); });
+                    btn.classList.add("active");
+                    currentChartMetric = btn.getAttribute("data-metric");
+                    renderChart();
+                });
+            });
+        }
+
+        /* =============================================================
+            14. CONVERSION FUNNEL
+           ============================================================= */
+        function renderFunnel(funnel) {
+            var panel = document.getElementById("funnel-panel");
+            if (!panel) return;
+            panel.innerHTML = "";
+            var steps = funnel || [];
+            if (steps.length === 0) {
+                panel.innerHTML = '<div class="empty-row">No funnel data in this period yet.</div>';
+                return;
+            }
+            var maxCount = Math.max(steps[0].count || 1, 1);
+            steps.forEach(function (s) {
+                var width = Math.max(2, Math.round(((s.count || 0) / maxCount) * 100));
+                var row = document.createElement("div");
+                row.className = "funnel-step";
+                row.innerHTML =
+                    '<div class="funnel-row">' +
+                        '<span class="funnel-label">' + escapeHtml(s.label) + '</span>' +
+                        '<span class="funnel-meta">' + formatInt(s.count) + ' <span style="color:var(--text-tertiary);font-weight:500;">(' + s.pct + '%)</span></span>' +
+                    '</div>' +
+                    '<div class="funnel-track"><div class="funnel-fill" style="width:' + width + '%"></div></div>';
+                panel.appendChild(row);
+            });
+            var first = steps[0].count || 0;
+            var last = steps[steps.length - 1].count || 0;
+            var conv = first > 0 ? (last / first) * 100 : 0;
+            var convEl = document.createElement("div");
+            convEl.className = "funnel-conversion";
+            convEl.innerHTML = '▲ <strong>' + conv.toFixed(1) + '%</strong>&nbsp;overall conversion (visitor → booking action)';
+            panel.appendChild(convEl);
+        }
+
+        /* =============================================================
+            15. READING PERFORMANCE TABLE
+           ============================================================= */
+        function renderCards(cards) {
+            var panel = document.querySelector("#section-cards .table-panel");
+            if (!panel) return;
+            if (!cards || cards.length === 0) {
+                panel.innerHTML = '<div class="empty-row">No pricing-card clicks yet. Clicks start appearing once the new tracker ships.</div>';
+                return;
+            }
+            var totalClicks = cards.reduce(function (a, c) { return a + (c.clicks || 0); }, 0);
+            var html = '<table><thead><tr>' +
+                '<th>#</th><th>Reading</th><th>Category</th><th>Price</th><th>Duration</th><th>Clicks</th><th>% of clicks</th><th>CTA clicks</th><th>CTA rate</th>' +
+                '</tr></thead><tbody>';
+            cards.forEach(function (c, i) {
+                var clickPct = totalClicks > 0 ? Math.round((c.clicks / totalClicks) * 1000) / 10 : 0;
+                var rateCls = (c.cta_rate || 0) >= 30 ? "rate-hot" : "rate-cold";
+                var badge = c.badge ? ' <span class="badge-pill">' + escapeHtml(c.badge) + '</span>' : "";
+                html += '<tr>' +
+                    '<td class="card-rank">' + (i + 1) + '</td>' +
+                    '<td style="color:var(--text-primary);font-weight:600;">' + escapeHtml(c.name) + badge + '</td>' +
+                    '<td>' + escapeHtml(c.category || "—") + '</td>' +
+                    '<td class="price-cell">' + (c.price ? c.currency + " " + formatInt(c.price) : "—") + '</td>' +
+                    '<td>' + escapeHtml(c.duration || "—") + '</td>' +
+                    '<td>' + formatInt(c.clicks) + '</td>' +
+                    '<td>' + clickPct + '%</td>' +
+                    '<td>' + formatInt(c.ctas || 0) + '</td>' +
+                    '<td class="' + rateCls + '">' + (c.cta_rate || 0) + '%</td>' +
+                    '</tr>';
+            });
+            html += '</tbody></table>';
+            panel.innerHTML = html;
+        }
+
+        /* =============================================================
+            16. CAMPAIGNS + JOURNEYS
+           ============================================================= */
+        function renderCampaigns(campaigns) {
+            var list = document.getElementById("campaign-list");
+            var countEl = document.getElementById("campaign-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = campaigns.reduce(function (a, c) { return a + (c.visits || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " visits";
+            if (!campaigns || campaigns.length === 0) {
+                list.innerHTML = emptyRow("No campaign data in this period.");
+                return;
+            }
+            var max = campaigns[0].visits || 1;
+            campaigns.forEach(function (c) {
+                var icon = c.source === "direct"
+                    ? '<span>🌐</span>'
+                    : '<img src="https://www.google.com/s2/favicons?domain=' + encodeURIComponent(c.source) + '&sz=32" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+                var sub = c.medium ? c.medium : (c.unique_visitors + " unique");
+                list.appendChild(itemRow(icon, c.source, c.visits, max));
+                var lastChild = list.lastChild;
+                var subEl = lastChild.querySelector(".list-name");
+                if (subEl) subEl.setAttribute("title", sub);
+            });
+        }
+
+        function journeyItem(kind, time, title, sub, tagText, tagCls) {
+            var el = document.createElement("div");
+            el.className = "tl-item " + kind;
+            var tag = tagText ? ' <span class="tl-tag ' + (tagCls || "") + '">' + escapeHtml(tagText) + '</span>' : "";
+            el.innerHTML =
+                '<span class="tl-dot"></span>' +
+                '<div class="tl-time">' + (time || "") + '</div>' +
+                '<div class="tl-title">' + escapeHtml(title) + tag + '</div>' +
+                (sub ? '<div class="tl-sub">' + escapeHtml(sub) + '</div>' : "");
+            return el;
+        }
+
+        function shortPage(u) {
+            try {
+                var p = new URL(u).pathname;
+                return p === "/" ? new URL(u).hostname.replace(/^www\./, "") : p;
+            } catch (e) { return u || "/"; }
+        }
+
+        function renderJourneys(journeys) {
+            var holder = document.getElementById("journey-list");
+            var countEl = document.getElementById("journey-count");
+            if (!holder) return;
+            holder.innerHTML = "";
+            if (countEl) countEl.textContent = (journeys ? journeys.length : 0) + " sessions";
+            if (!journeys || journeys.length === 0) {
+                holder.innerHTML = '<div class="empty-row">No journeys recorded yet.</div>';
+                return;
+            }
+            journeys.forEach(function (j) {
+                var panel = document.createElement("div");
+                panel.className = "journey-panel";
+                var started = formatTime(j.started_at);
+                var sourceTag = j.utm_source ? '<span class="badge-pill" style="margin-left:6px;">' + escapeHtml(j.utm_source) + '</span>' : "";
+                var head = document.createElement("div");
+                head.className = "journey-head";
+                head.innerHTML =
+                    '<div class="feed-title">' + shortPage(j.entry_page) + sourceTag + '</div>' +
+                    '<div class="journey-meta">' + (started || "") + " · " + (j.timeline ? j.timeline.length : 0) + " steps" + '</div>';
+                panel.appendChild(head);
+
+                var tl = document.createElement("div");
+                tl.className = "timeline";
+                var steps = j.timeline || [];
+                steps.forEach(function (s) {
+                    var t = formatTime(s.time);
+                    if (s.kind === "page") {
+                        tl.appendChild(journeyItem("page", t, "Visited " + shortPage(s.target), s.label || ""));
+                    } else if (s.event_type === "pricing_card_click") {
+                        var p = s.properties || {};
+                        var price = p.price ? " · " + p.currency + " " + formatInt(p.price) : "";
+                        tl.appendChild(journeyItem("event", t, "Selected " + (p.name || s.target), p.category ? p.category : "", "PLAN", "plan"));
+                    } else if (s.event_type === "cta_click") {
+                        var p2 = s.properties || {};
+                        tl.appendChild(journeyItem("cta", t, "Booking action: " + (p2.target || "cta"), p2.plan ? "Plan: " + p2.plan : "", "CTA", "cta"));
+                    } else if (s.event_type === "form_submit") {
+                        tl.appendChild(journeyItem("cta", t, "Submitted form", s.target || "", "FORM", "cta"));
+                    } else if (s.event_type === "link_click") {
+                        tl.appendChild(journeyItem("event", t, "Opened external link", shortPage(s.target || ""), "LINK"));
+                    } else if (s.event_type === "section_view") {
+                        var p3 = s.properties || {};
+                        tl.appendChild(journeyItem("event", t, "Reached section " + (p3.name || s.target), p3.category || ""));
+                    } else if (s.event_type === "scroll_milestone") {
+                        tl.appendChild(journeyItem("event", t, "Scrolled to " + (s.target || "") , "", "SCROLL"));
+                    } else {
+                        tl.appendChild(journeyItem("event", t, s.event_type || "event", s.target || ""));
+                    }
+                });
+                panel.appendChild(tl);
+                holder.appendChild(panel);
+            });
+        }
+
+        function fetchBusiness() {
+            var days = currentDays;
+            Promise.all([
+                apiFetch("/api/stats/funnel?days=" + days),
+                apiFetch("/api/stats/cards?days=" + days),
+                apiFetch("/api/stats/campaigns?days=" + days),
+                apiFetch("/api/stats/journeys?days=" + days + "&limit=8")
+            ]).then(function (res) {
+                renderFunnel(res[0].funnel || []);
+                renderCards(res[1].cards || []);
+                renderCampaigns(res[2].campaigns || []);
+                renderJourneys(res[3].journeys || []);
+            }).catch(function (err) {
+                console.error("Failed to fetch business sections:", err);
+            });
+        }
+
+        /* =============================================================
+            17. INIT
            ============================================================= */
         fetchAll();
+        fetchBreakdowns(currentDays);
+        fetchBusiness();
         pollEvents();
         setInterval(pollEvents, 10000);
         setInterval(fetchAll, 30000);
+        setInterval(function () { fetchBreakdowns(currentDays); }, 60000);
+        setInterval(fetchBusiness, 60000);
     })();
     </script>
 

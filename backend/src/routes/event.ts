@@ -53,12 +53,13 @@ export async function handleEvent(
       });
     }
 
-    // Also update session duration
+    // Also update session duration — ACCUMULATE across pages, don't overwrite
     const sessRows = await supabaseQuery<{ id: string; duration_seconds: number }>(env, "sessions", {
       session_id: `eq.${body.session_id}`,
       select: "id,duration_seconds",
     });
     if (sessRows.length > 0 && body.time_on_page && body.time_on_page > 0) {
+      const current = Number(sessRows[0].duration_seconds) || 0;
       const url = `${env.SUPABASE_URL}/rest/v1/sessions?session_id=eq.${body.session_id}`;
       await fetch(url, {
         method: "PATCH",
@@ -68,7 +69,7 @@ export async function handleEvent(
           "Content-Type": "application/json",
           Prefer: "return=minimal",
         },
-        body: JSON.stringify({ duration_seconds: body.time_on_page }),
+        body: JSON.stringify({ duration_seconds: Math.round((current + body.time_on_page) * 10) / 10 }),
       });
     }
   }
@@ -81,6 +82,7 @@ export async function handleEvent(
     event_type: body.event_type,
     event_target: body.event_target || "",
     page_url: body.page_url || "",
+    properties: body.properties || {},
   });
 
   if (!result.ok) {

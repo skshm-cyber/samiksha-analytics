@@ -81,6 +81,9 @@ export async function handleTrack(
       exit_page: body.page_url,
       page_count: 1,
       is_bounce: true,
+      referrer: body.referrer || "",
+      utm_source: body.utm_source || "",
+      utm_campaign: body.utm_campaign || "",
     });
   } else {
     const pageCount = (existingSession[0] as Record<string, unknown>).page_count as number;
@@ -112,6 +115,10 @@ export async function handleTrack(
     is_first_visit: body.is_first_visit === 1,
     scroll_percentage: body.scroll_percentage || 0,
     time_on_page: body.time_on_page || 0,
+    utm_source: body.utm_source || "",
+    utm_medium: body.utm_medium || "",
+    utm_campaign: body.utm_campaign || "",
+    utm_content: body.utm_content || "",
   });
 
   // 4. Insert device — we need the page_view ID
@@ -136,6 +143,18 @@ export async function handleTrack(
       language: body.language || "",
       timezone: body.timezone || "",
     });
+
+    // 4b. Fill geo from Cloudflare's CF-IPCountry header when present
+    const country = request.headers.get("CF-IPCountry");
+    if (country && country !== "XX" && country !== "T1") {
+      await supabaseInsert(env, "locations", {
+        page_view_id: pvRows[0].id,
+        country,
+        city: "",
+        latitude: null,
+        longitude: null,
+      });
+    }
   }
 
   return jsonResponse(env, { status: "ok" }, 200, origin);
