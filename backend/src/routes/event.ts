@@ -75,7 +75,7 @@ export async function handleEvent(
   }
 
   // Insert the event
-  const result = await supabaseInsert(env, "events", {
+  let result = await supabaseInsert(env, "events", {
     visitor_id: body.visitor_id,
     session_id: body.session_id,
     timestamp: body.timestamp || now,
@@ -84,6 +84,27 @@ export async function handleEvent(
     page_url: body.page_url || "",
     properties: body.properties || {},
   });
+
+  // Self-heal: if the visitor row doesn't exist yet (event beat /api/track),
+  // create it and retry the insert once.
+  if (!result.ok && result.error && result.error.includes("events_visitor_id_fkey")) {
+    const visResult = await supabaseInsert(env, "visitors", {
+      visitor_id: body.visitor_id,
+      first_seen: body.timestamp || now,
+      last_seen: now,
+    });
+    if (visResult.ok) {
+      result = await supabaseInsert(env, "events", {
+        visitor_id: body.visitor_id,
+        session_id: body.session_id,
+        timestamp: body.timestamp || now,
+        event_type: body.event_type,
+        event_target: body.event_target || "",
+        page_url: body.page_url || "",
+        properties: body.properties || {},
+      });
+    }
+  }
 
   if (!result.ok) {
     return errorResponse(env, "Failed to store event", 500, origin);
