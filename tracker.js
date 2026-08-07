@@ -246,25 +246,50 @@
     function cardMeta(el) {
         var node = el;
         while (node && node.nodeType === 1 && node !== document.body) {
-            if (node.getAttribute && (node.getAttribute("data-plan") || node.getAttribute("data-reading"))) {
-                var headingEl = node.querySelector ? node.querySelector("h1,h2,h3,h4,h5,h6,.plan-name") : null;
-                var full = cleanText(node.textContent);
-                var p = parsePrice(full);
-                var explicitPrice = node.getAttribute("data-price");
-                return {
-                    name: node.getAttribute("data-name")
-                        || cleanText(headingEl ? headingEl.textContent : "")
-                        || full.split(" ").slice(0, 6).join(" "),
-                    category: node.getAttribute("data-category") || sectionCategory(node),
-                    price: explicitPrice !== "" && explicitPrice != null ? Number(explicitPrice) : p.value,
-                    currency: node.getAttribute("data-currency")
-                        || (explicitPrice != null && explicitPrice !== "" ? (parsePrice(full).currency || "INR") : (p.currency || "INR")),
-                    duration: node.getAttribute("data-duration") || "",
-                    badge: node.getAttribute("data-badge") || "",
-                };
+            if (node.getAttribute) {
+                var explicitPlan = node.getAttribute("data-plan")
+                    || node.getAttribute("data-reading")
+                    || node.getAttribute("data-name");
+                if (explicitPlan) {
+                    var headingEl = node.querySelector ? node.querySelector("h1,h2,h3,h4,h5,h6,.plan-name,.reading-card-name") : null;
+                    var full = cleanText(node.textContent);
+                    var p = parsePrice(full);
+
+                    // Tarot-site style: data-price-inr / data-price-usd attributes
+                    var price = null;
+                    var currency = null;
+                    var inrRaw = node.getAttribute("data-price-inr");
+                    var usdRaw = node.getAttribute("data-price-usd");
+                    if (inrRaw) {
+                        var inr = parsePrice(inrRaw);
+                        if (inr.value !== null) { price = inr.value; currency = "INR"; }
+                    }
+                    if (price === null && usdRaw) {
+                        var usd = parsePrice(usdRaw);
+                        if (usd.value !== null) { price = usd.value; currency = "USD"; }
+                    }
+                    if (price === null) { price = p.value; currency = p.currency; }
+
+                    var explicitPrice = node.getAttribute("data-price");
+                    if (explicitPrice !== "" && explicitPrice != null) {
+                        price = Number(explicitPrice);
+                        currency = currency || "INR";
+                    }
+
+                    return {
+                        name: explicitPlan
+                            || cleanText(headingEl ? headingEl.textContent : "")
+                            || full.split(" ").slice(0, 6).join(" "),
+                        category: node.getAttribute("data-category") || sectionCategory(node),
+                        price: price,
+                        currency: node.getAttribute("data-currency") || currency || "INR",
+                        duration: node.getAttribute("data-duration") || "",
+                        badge: node.getAttribute("data-badge") || "",
+                    };
+                }
             }
             if (node.querySelector) {
-                var headings = node.querySelectorAll("h1,h2,h3,h4,h5,h6");
+                var headings = node.querySelectorAll("h1,h2,h3,h4,h5,h6,.reading-card-name");
                 var text = cleanText(node.textContent || "");
                 var price = parsePrice(text);
                 if (headings.length > 0 && price.value !== null && text.length > 4) {
