@@ -43,6 +43,7 @@
         if (window.SAMIKSHA_SKIP_TRACKING) return true;
         var host = window.location.hostname || "";
         if (host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0") return true;
+        if (host.indexOf("samiksha-analytics") !== -1) return true;
         var path = window.location.pathname || "";
         if (path.indexOf("samiksha-analytics") !== -1) return true;
         if (path.indexOf("samiksha_analytics") !== -1) return true;
