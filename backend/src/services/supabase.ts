@@ -69,11 +69,15 @@ export async function supabaseInsertBatch(
 export async function supabaseQuery<T = Record<string, unknown>>(
   env: Env,
   table: string,
-  params: Record<string, string> = {}
+  params: Record<string, string | string[]> = {}
 ): Promise<T[]> {
   const url = new URL(`${env.SUPABASE_URL}/rest/v1/${table}`);
   for (const [k, v] of Object.entries(params)) {
-    url.searchParams.set(k, v);
+    if (Array.isArray(v)) {
+      for (const item of v) url.searchParams.append(k, item);
+    } else {
+      url.searchParams.set(k, v);
+    }
   }
   const res = await fetch(url.toString(), {
     method: "GET",

@@ -1,24 +1,27 @@
 import { Env } from "../types";
 import { supabaseQuery } from "../services/supabase";
 import { jsonResponse, errorResponse } from "../middleware/cors";
+import { getWindow, istDateStr, istHour } from "../utils/time";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function daysAgo(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString();
-}
-
-function todayStart(): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-}
-
-function getDaysParam(url: URL, def = 1): number {
-  const d = parseInt(url.searchParams.get("days") || String(def), 10);
-  return isNaN(d) || d < 1 ? def : Math.min(d, 365);
+function bookingVisitors(events: Record<string, unknown>[]): Set<string> {
+  const booked = new Set<string>();
+  for (const e of events) {
+    const vid = e.visitor_id as string;
+    const type = e.event_type as string;
+    const props = (e.properties as Record<string, unknown>) || {};
+    const target = (e.event_target as string) || "";
+    if (type === "cta_click") {
+      const t = props.target as string;
+      if (t === "whatsapp" || t === "form" || t === "card-cta") booked.add(vid);
+    } else if (type === "link_click" && target.includes("wa.me")) {
+      booked.add(vid);
+    } else if (type === "form_submit") {
+      booked.add(vid);
+    }
+  }
+  return booked;
 }
 
 // ── GET /api/stats/overview ──────────────────────────────────────────────────
@@ -28,25 +31,14 @@ export async function handleOverview(
   env: Env
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
-  const today = todayStart();
+  const url = new URL(request.url);
+  const { start, end } = getWindow(url, 1);
+  const range = { timestamp: [`gte.${start}`, `lte.${end}`] };
 
-  const [visitors, pageViews, sessions, live] = await Promise.all([
-    supabaseQuery(env, "page_views", {
-      timestamp: `gte.${today}`,
-      select: "visitor_id",
-    }),
-    supabaseQuery(env, "page_views", {
-      timestamp: `gte.${today}`,
-      select: "id",
-    }),
-    supabaseQuery(env, "sessions", {
-      started_at: `gte.${today}`,
-      select: "session_id",
-    }),
-    supabaseQuery(env, "page_views", {
-      timestamp: `gte.${daysAgo(0)}`,
-      select: "visitor_id",
-    }),
+  const [visitors, pageViews, sessions] = await Promise.all([
+    supabaseQuery(env, "page_views", { ...range, select: "visitor_id" }),
+    supabaseQuery(env, "page_views", { ...range, select: "id" }),
+    supabaseQuery(env, "sessions", { started_at: [`gte.${start}`, `lte.${end}`], select: "session_id" }),
   ]);
 
   // Unique visitors
@@ -75,16 +67,21 @@ export async function handleSecondary(
   env: Env
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
-  const today = todayStart();
+  const url = new URL(request.url);
+  const { start, end } = getWindow(url, 1);
 
-  const [visitors, sessions] = await Promise.all([
+  const [visitors, sessions, events] = await Promise.all([
     supabaseQuery(env, "page_views", {
-      timestamp: `gte.${today}`,
+      timestamp: [`gte.${start}`, `lte.${end}`],
       select: "visitor_id,is_first_visit",
     }),
     supabaseQuery(env, "sessions", {
-      started_at: `gte.${today}`,
+      started_at: [`gte.${start}`, `lte.${end}`],
       select: "session_id,is_bounce,duration_seconds",
+    }),
+    supabaseQuery(env, "events", {
+      timestamp: [`gte.${start}`, `lte.${end}`],
+      select: "visitor_id,event_type,event_target,properties",
     }),
   ]);
 
@@ -101,11 +98,14 @@ export async function handleSecondary(
   const totalDuration = sessions.reduce((sum, r) => sum + ((r.duration_seconds as number) || 0), 0);
   const avgDuration = totalSessions > 0 ? totalDuration / totalSessions : 0;
 
+  const booked = bookingVisitors(events).size;
+  const conversionRate = uniqueVisitors > 0 ? (booked / uniqueVisitors) * 100 : 0;
+
   return jsonResponse(env, {
     unique_visitors_today: uniqueVisitors,
     avg_session_duration: Math.round(avgDuration * 10) / 10,
     bounce_rate: Math.round(bounceRate * 10) / 10,
-    conversion_rate: 0,
+    conversion_rate: Math.round(conversionRate * 10) / 10,
     returning_visitors_today: returningVisitors,
     new_visitors_today: newVisitors,
   }, 200, origin);
@@ -119,11 +119,10 @@ export async function handleHourly(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url);
 
   const rows = await supabaseQuery(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "timestamp",
   });
 
@@ -131,8 +130,7 @@ export async function handleHourly(
   for (let h = 0; h < 24; h++) hourMap.set(h, 0);
 
   for (const row of rows) {
-    const d = new Date(row.timestamp as string);
-    const hour = d.getUTCHours();
+    const hour = istHour(row.timestamp as string);
     hourMap.set(hour, (hourMap.get(hour) || 0) + 1);
   }
 
@@ -149,12 +147,11 @@ export async function handlePages(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
+  const { start, end } = getWindow(url);
   const limit = parseInt(url.searchParams.get("limit") || "20", 10);
-  const since = daysAgo(days);
 
   const rows = await supabaseQuery(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "page_url,visitor_id,time_on_page,scroll_percentage",
   });
 
@@ -194,12 +191,11 @@ export async function handleReferrers(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
+  const { start, end } = getWindow(url);
   const limit = parseInt(url.searchParams.get("limit") || "10", 10);
-  const since = daysAgo(days);
 
   const rows = await supabaseQuery(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "referrer",
     referrer: "not.is.null",
   });
@@ -228,12 +224,11 @@ export async function handleBrowsers(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url);
 
   // Get page view IDs from the time range, then get devices
   const pvs = await supabaseQuery<{ id: string }>(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "id",
   });
   if (pvs.length === 0) return jsonResponse(env, { browsers: [] }, 200, origin);
@@ -267,11 +262,10 @@ export async function handleDevices(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url);
 
   const pvs = await supabaseQuery<{ id: string }>(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "id",
   });
   if (pvs.length === 0) return jsonResponse(env, { devices: [] }, 200, origin);
@@ -305,11 +299,10 @@ export async function handleOS(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url);
 
   const pvs = await supabaseQuery<{ id: string }>(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "id",
   });
   if (pvs.length === 0) return jsonResponse(env, { os: [] }, 200, origin);
@@ -376,24 +369,34 @@ export async function handleTrends(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url, 30);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url, 30);
 
-  const rows = await supabaseQuery(env, "page_views", {
-    timestamp: `gte.${since}`,
-    select: "timestamp,visitor_id",
-  });
+  const [rows, sessionRows] = await Promise.all([
+    supabaseQuery(env, "page_views", {
+      timestamp: [`gte.${start}`, `lte.${end}`],
+      select: "timestamp,visitor_id",
+    }),
+    supabaseQuery(env, "sessions", {
+      started_at: [`gte.${start}`, `lte.${end}`],
+      select: "started_at",
+    }),
+  ]);
 
-  // Group by date
-  const dayMap = new Map<string, { visitors: Set<string>; views: number }>();
+  // Group by date (IST)
+  const dayMap = new Map<string, { visitors: Set<string>; views: number; sessions: number }>();
   for (const row of rows) {
-    const dateStr = (row.timestamp as string).slice(0, 10);
+    const dateStr = istDateStr(row.timestamp as string);
     if (!dayMap.has(dateStr)) {
-      dayMap.set(dateStr, { visitors: new Set(), views: 0 });
+      dayMap.set(dateStr, { visitors: new Set(), views: 0, sessions: 0 });
     }
     const entry = dayMap.get(dateStr)!;
     entry.visitors.add(row.visitor_id as string);
     entry.views++;
+  }
+  for (const s of sessionRows) {
+    const dateStr = istDateStr(s.started_at as string);
+    if (!dayMap.has(dateStr)) dayMap.set(dateStr, { visitors: new Set(), views: 0, sessions: 0 });
+    dayMap.get(dateStr)!.sessions++;
   }
 
   const trends = Array.from(dayMap.entries())
@@ -402,7 +405,7 @@ export async function handleTrends(
       date,
       visitors: data.visitors.size,
       page_views: data.views,
-      sessions: 0,
+      sessions: data.sessions,
     }));
 
   return jsonResponse(env, { trends }, 200, origin);
@@ -416,12 +419,11 @@ export async function handleEvents(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
+  const { start, end } = getWindow(url);
   const limit = parseInt(url.searchParams.get("limit") || "100", 10);
-  const since = daysAgo(days);
 
   const events = await supabaseQuery(env, "events", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     order: "timestamp.desc",
     limit: String(limit),
   });
@@ -437,11 +439,10 @@ export async function handleEventsSummary(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url);
 
   const events = await supabaseQuery(env, "events", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "event_type",
   });
 
@@ -466,34 +467,33 @@ export async function handleDaily(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url, 30);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url, 30);
 
   const [pageViews, sessions] = await Promise.all([
     supabaseQuery(env, "page_views", {
-      timestamp: `gte.${since}`,
+      timestamp: [`gte.${start}`, `lte.${end}`],
       select: "timestamp,visitor_id",
     }),
     supabaseQuery(env, "sessions", {
-      started_at: `gte.${since}`,
+      started_at: [`gte.${start}`, `lte.${end}`],
       select: "started_at,is_bounce,duration_seconds",
     }),
   ]);
 
-  // Group page views by date
+  // Group page views by date (IST)
   const pvByDate = new Map<string, { visitors: Set<string>; views: number }>();
   for (const pv of pageViews) {
-    const d = (pv.timestamp as string).slice(0, 10);
+    const d = istDateStr(pv.timestamp as string);
     if (!pvByDate.has(d)) pvByDate.set(d, { visitors: new Set(), views: 0 });
     const entry = pvByDate.get(d)!;
     entry.visitors.add(pv.visitor_id as string);
     entry.views++;
   }
 
-  // Group sessions by date
+  // Group sessions by date (IST)
   const sessByDate = new Map<string, { total: number; bounced: number; duration: number }>();
   for (const s of sessions) {
-    const d = (s.started_at as string).slice(0, 10);
+    const d = istDateStr(s.started_at as string);
     if (!sessByDate.has(d)) sessByDate.set(d, { total: 0, bounced: 0, duration: 0 });
     const entry = sessByDate.get(d)!;
     entry.total++;
@@ -529,12 +529,11 @@ export async function handleCountries(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
+  const { start, end } = getWindow(url);
   const limit = parseInt(url.searchParams.get("limit") || "20", 10);
-  const since = daysAgo(days);
 
   const pvs = await supabaseQuery<{ id: string }>(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "id",
   });
   if (pvs.length === 0) return jsonResponse(env, { countries: [] }, 200, origin);
@@ -568,12 +567,11 @@ export async function handleCities(
 ): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
+  const { start, end } = getWindow(url);
   const limit = parseInt(url.searchParams.get("limit") || "20", 10);
-  const since = daysAgo(days);
 
   const pvs = await supabaseQuery<{ id: string }>(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "id",
   });
   if (pvs.length === 0) return jsonResponse(env, { cities: [] }, 200, origin);

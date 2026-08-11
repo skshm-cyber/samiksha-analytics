@@ -1,19 +1,9 @@
 import { Env } from "../types";
 import { supabaseQuery } from "../services/supabase";
 import { jsonResponse } from "../middleware/cors";
+import { getWindow } from "../utils/time";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-
-function daysAgo(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString();
-}
-
-function getDaysParam(_url: URL, def = 30): number {
-  const d = parseInt(_url.searchParams.get("days") || String(def), 10);
-  return isNaN(d) || d < 1 ? def : Math.min(d, 365);
-}
 
 function getIntParam(url: URL, key: string, def: number): number {
   const v = parseInt(url.searchParams.get(key) || String(def), 10);
@@ -28,34 +18,39 @@ function pct(part: number, whole: number): number {
 // Which pricing cards (readings) people click, and how often that leads to a
 // booking CTA. Grouped by plan name from event properties.
 
+interface CardAcc {
+  clicks: number;
+  ctas: number;
+  sessions: Set<string>;
+  visitors: Set<string>;
+  category: string;
+  price: number | null;
+  currency: string;
+  duration: string;
+  badge: string;
+}
+
 export async function handleCards(request: Request, env: Env): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url);
 
   const events = await supabaseQuery<Record<string, unknown>>(env, "events", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     event_type: `in.(pricing_card_click,cta_click)`,
-    select: "session_id,event_type,event_target,properties,page_url,timestamp",
+    order: "timestamp.asc",
+    select: "session_id,visitor_id,event_type,event_target,properties,page_url,timestamp",
   });
 
-  const cardMap = new Map<string, {
-    clicks: number;
-    ctas: number;
-    sessions: Set<string>;
-    category: string;
-    price: number | null;
-    currency: string;
-    duration: string;
-    badge: string;
-  }>();
+  const cardMap = new Map<string, CardAcc>();
+  const lastCardSession = new Map<string, string>();
   const ctaSessions = new Set<string>();
 
   for (const e of events) {
     const props = (e.properties as Record<string, unknown>) || {};
     const type = e.event_type as string;
     const session = (e.session_id as string) || "";
+    const visitor = (e.visitor_id as string) || "";
 
     if (type === "pricing_card_click") {
       const name = (props.name as string) || (e.event_target as string) || "Unknown";
@@ -64,6 +59,7 @@ export async function handleCards(request: Request, env: Env): Promise<Response>
           clicks: 0,
           ctas: 0,
           sessions: new Set(),
+          visitors: new Set(),
           category: (props.category as string) || "",
           price: typeof props.price === "number" ? props.price : null,
           currency: (props.currency as string) || "INR",
@@ -73,15 +69,22 @@ export async function handleCards(request: Request, env: Env): Promise<Response>
       }
       const c = cardMap.get(name)!;
       c.clicks++;
-      c.sessions.add(session);
+      if (session) {
+        c.sessions.add(session);
+        lastCardSession.set(session, name);
+      }
+      if (visitor) c.visitors.add(visitor);
     } else if (type === "cta_click") {
       const plan = (props.plan as string) || "";
-      if (plan && cardMap.has(plan)) {
-        cardMap.get(plan)!.ctas++;
+      const target = (props.target as string) || "";
+      // Attribute the CTA to a card: explicit plan → last card clicked in session
+      let attributed = plan && cardMap.has(plan) ? plan : "";
+      if (!attributed && session) attributed = lastCardSession.get(session) || "";
+      if (attributed && cardMap.has(attributed)) {
+        cardMap.get(attributed)!.ctas++;
       }
-      const target = props.target as string;
       if (target === "whatsapp" || target === "form") {
-        ctaSessions.add(session);
+        if (session) ctaSessions.add(session);
       }
     }
   }
@@ -91,7 +94,7 @@ export async function handleCards(request: Request, env: Env): Promise<Response>
       name,
       category: d.category,
       clicks: d.clicks,
-      unique_visitors: d.sessions.size,
+      unique_visitors: d.visitors.size,
       ctas: d.ctas,
       cta_rate: pct(d.ctas, d.clicks),
       price: d.price,
@@ -102,72 +105,83 @@ export async function handleCards(request: Request, env: Env): Promise<Response>
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 25);
 
-  return jsonResponse(env, { cards, meta: { days, cta_sessions: ctaSessions.size } }, 200, origin);
+  const metaDays = Math.max(1, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86_400_000));
+  return jsonResponse(env, { cards, meta: { days: metaDays, cta_sessions: ctaSessions.size } }, 200, origin);
 }
 
 // ── GET /api/stats/funnel ────────────────────────────────────────────────────
 // Visitor → reached pricing → clicked a reading → took a booking action.
-// "Reached pricing" counts sessions and maps uniquely back to visitors.
+// All steps count unique VISITORS (mapped from sessions via page_views/events).
 
 export async function handleFunnel(request: Request, env: Env): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url);
 
   const [pageViews, userEvents] = await Promise.all([
     supabaseQuery<Record<string, unknown>>(env, "page_views", {
-      timestamp: `gte.${since}`,
+      timestamp: [`gte.${start}`, `lte.${end}`],
       select: "visitor_id,session_id,page_url",
     }),
     supabaseQuery<Record<string, unknown>>(env, "events", {
-      timestamp: `gte.${since}`,
+      timestamp: [`gte.${start}`, `lte.${end}`],
       select: "visitor_id,session_id,event_type,event_target,properties",
     }),
   ]);
 
   const visitors = new Set<string>();
+  const pricingVisitors = new Set<string>();
+  const cardVisitors = new Set<string>();
+  const bookVisitors = new Set<string>();
   const pricingSessions = new Set<string>();
-  const cardSessions = new Set<string>();
-  const bookSessions = new Set<string>();
+  const sessionVisitor = new Map<string, string>();
 
   for (const pv of pageViews) {
-    visitors.add(pv.visitor_id as string);
-    if ((pv.page_url as string).toLowerCase().includes("pricing")) {
-      pricingSessions.add(pv.session_id as string);
+    const vid = pv.visitor_id as string;
+    const sid = pv.session_id as string;
+    visitors.add(vid);
+    if (sid) {
+      sessionVisitor.set(sid, vid);
+      if ((pv.page_url as string).toLowerCase().includes("pricing")) {
+        pricingSessions.add(sid);
+      }
     }
+  }
+  for (const sid of pricingSessions) {
+    const vid = sessionVisitor.get(sid);
+    if (vid) pricingVisitors.add(vid);
   }
 
   for (const e of userEvents) {
+    const vid = e.visitor_id as string;
+    if (!vid) continue;
     const type = e.event_type as string;
-    const session = (e.session_id as string) || "";
     const props = (e.properties as Record<string, unknown>) || {};
     const target = (e.event_target as string) || "";
 
     if (type === "pricing_card_click") {
-      cardSessions.add(session);
-      pricingSessions.add(session);
+      cardVisitors.add(vid);
+      pricingVisitors.add(vid);
     } else if (type === "cta_click") {
-      if (props.target === "whatsapp" || props.target === "form") {
-        bookSessions.add(session);
-        cardSessions.add(session);
-        pricingSessions.add(session);
+      const t = props.target as string;
+      if (t === "whatsapp" || t === "form" || t === "card-cta") {
+        bookVisitors.add(vid);
       }
     } else if (type === "link_click" && target.includes("wa.me")) {
-      bookSessions.add(session);
+      bookVisitors.add(vid);
     } else if (type === "form_submit") {
-      bookSessions.add(session);
+      bookVisitors.add(vid);
     } else if (type === "section_view" && props.name === "pricing") {
-      pricingSessions.add(session);
+      pricingVisitors.add(vid);
     }
   }
 
   const visitorsCount = visitors.size;
   const funnel = [
     { key: "visitors", label: "Visitors", count: visitorsCount, pct: 100 },
-    { key: "pricing", label: "Reached pricing", count: pricingSessions.size, pct: pct(pricingSessions.size, visitorsCount) },
-    { key: "cards", label: "Clicked a reading", count: cardSessions.size, pct: pct(cardSessions.size, visitorsCount) },
-    { key: "booked", label: "Booked / asked CTA", count: bookSessions.size, pct: pct(bookSessions.size, visitorsCount) },
+    { key: "pricing", label: "Reached pricing", count: pricingVisitors.size, pct: pct(pricingVisitors.size, visitorsCount) },
+    { key: "cards", label: "Clicked a reading", count: cardVisitors.size, pct: pct(cardVisitors.size, visitorsCount) },
+    { key: "booked", label: "Booked / asked CTA", count: bookVisitors.size, pct: pct(bookVisitors.size, visitorsCount) },
   ];
 
   return jsonResponse(env, { funnel }, 200, origin);
@@ -179,11 +193,10 @@ export async function handleFunnel(request: Request, env: Env): Promise<Response
 export async function handleCampaigns(request: Request, env: Env): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
-  const since = daysAgo(days);
+  const { start, end } = getWindow(url);
 
   const rows = await supabaseQuery<Record<string, unknown>>(env, "page_views", {
-    timestamp: `gte.${since}`,
+    timestamp: [`gte.${start}`, `lte.${end}`],
     select: "utm_source,utm_medium,utm_campaign,visitor_id",
   });
 
@@ -218,12 +231,11 @@ export async function handleCampaigns(request: Request, env: Env): Promise<Respo
 export async function handleJourneys(request: Request, env: Env): Promise<Response> {
   const origin = request.headers.get("Origin");
   const url = new URL(request.url);
-  const days = getDaysParam(url);
+  const { start, end } = getWindow(url);
   const limit = Math.min(getIntParam(url, "limit", 8), 25);
-  const since = daysAgo(days);
 
   const recent = await supabaseQuery<Record<string, unknown>>(env, "sessions", {
-    started_at: `gte.${since}`,
+    started_at: [`gte.${start}`, `lte.${end}`],
     order: "started_at.desc",
     limit: String(limit),
     select: "session_id,visitor_id,started_at,entry_page,page_count,duration_seconds,utm_source",
@@ -242,7 +254,7 @@ export async function handleJourneys(request: Request, env: Env): Promise<Respon
     }),
     supabaseQuery<Record<string, unknown>>(env, "events", {
       session_id: `in.(${sessionIds})`,
-      timestamp: `gte.${since}`,
+      timestamp: [`gte.${start}`, `lte.${end}`],
       order: "timestamp.asc",
       select: "session_id,timestamp,event_type,event_target,properties,page_url",
     }),
