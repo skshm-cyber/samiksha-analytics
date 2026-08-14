@@ -7,3 +7,4 @@ analytics.db
 node_modules/
 *.log
 .wrangler/
+AGENTS.md
