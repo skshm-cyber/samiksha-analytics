@@ -20,7 +20,11 @@ GitHub Pages (Frontend)         Cloudflare Worker (Backend)        Supabase (Dat
 ## Step 1: Supabase Database
 
 1. Go to [supabase.com](https://supabase.com) → New Project
-2. Go to **SQL Editor** → paste contents of `backend/migrations/001_initial_schema.sql` → Run
+2. Go to **SQL Editor** → run the migrations **in order**:
+   - `backend/migrations/001_initial_schema.sql`
+   - `backend/migrations/002_semantic_events.sql`
+   - `backend/migrations/003_device_columns_events.sql` (device info on events + backfill)
+   - `backend/migrations/004_enable_rls.sql` (row-level security — required for production)
 3. Copy your **Project URL** and **anon key** from Settings → API
 
 ---
@@ -68,19 +72,15 @@ Your Worker URL: `https://samiksha-analytics-api.YOUR_SUBDOMAIN.workers.dev`
 
 ### tracker.js — Change ONE line
 
-Open `tracker/tracker.js`, line 25-26. Replace:
+Open `tracker/tracker.js`, line 34-35. Verify it points at your Worker URL:
 
 ```javascript
 var API_BASE = window.SAMIKSHA_API_URL
-    || (window.location.protocol + "//" + window.location.hostname + ":8000");
+    || "https://samiksha-analytics1.tewarisaksham20.workers.dev";
 ```
 
-With:
-
-```javascript
-var API_BASE = window.SAMIKSHA_API_URL
-    || "https://samiksha-analytics-api.YOUR_SUBDOMAIN.workers.dev";
-```
+Deploy tracker.js + the dashboard to GitHub Pages (gh-pages branch), which the
+tarot site loads from: `https://skshm-cyber.github.io/samiksha-analytics/tracker.js`
 
 ### In your website HTML
 
@@ -108,7 +108,7 @@ Add before the tracker.js script:
 | Method | Endpoint | Body |
 |--------|----------|------|
 | POST | `/api/track` | visitor_id, session_id, timestamp, page_url, browser, os, device_type, ... |
-| POST | `/api/event` | visitor_id, session_id, timestamp, event_type, event_target, page_url |
+| POST | `/api/event` | visitor_id, session_id, timestamp, event_type, event_target, page_url, browser, os, device_type, properties, time_on_page, scroll_percentage |
 
 ### Analytics (for dashboard)
 
@@ -145,12 +145,12 @@ Add before the tracker.js script:
 ## Final Checklist
 
 - [ ] Supabase project created
-- [ ] SQL migration executed
+- [ ] SQL migrations 001–004 executed (in order)
 - [ ] Cloudflare Worker deployed
 - [ ] `/health` returns healthy
 - [ ] `SUPABASE_URL` secret set
 - [ ] `SUPABASE_ANON_KEY` secret set
-- [ ] `CORS_ORIGINS` secret set
-- [ ] tracker.js API_BASE updated
+- [ ] `CORS_ORIGINS` secret set (comma-separated allowlist, e.g. `https://skshm-cyber.github.io,https://samiksha-analytics.pages.dev`)
+- [ ] tracker.js API_BASE updated + deployed to gh-pages
 - [ ] Test page view via curl
 - [ ] Dashboard shows real data
