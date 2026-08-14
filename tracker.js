@@ -197,6 +197,9 @@
             event_type: eventType,
             event_target: eventTarget || "",
             page_url: window.location.href,
+            browser: browser.name,
+            os: os,
+            device_type: deviceType,
             properties: extraProps || {},
         });
     }
@@ -444,6 +447,9 @@
             event_type: "page_leave",
             event_target: "",
             page_url: window.location.href,
+            browser: browser.name,
+            os: os,
+            device_type: deviceType,
             time_on_page: Math.round(timeOnPage * 10) / 10,
             scroll_percentage: maxScrollPercent,
         });
