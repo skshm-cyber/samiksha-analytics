@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samiksha — Analytics Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <style>
+        /* =============================================================
+           DESIGN TOKENS
+           ============================================================= */
+        :root {
+            --bg-root: #09090b;
+            --bg-surface: #0f0f12;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.05);
+            --bg-elevated: rgba(255, 255, 255, 0.06);
+            --bg-input: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(255, 255, 255, 0.1);
+            --border-active: rgba(139, 92, 246, 0.4);
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #52525b;
+            --accent: #8b5cf6;
+            --green: #22c55e;
+            --green-dim: rgba(34, 197, 94, 0.12);
+            --red: #ef4444;
+            --red-dim: rgba(239, 68, 68, 0.12);
+            --yellow: #eab308;
+            --yellow-dim: rgba(234, 179, 8, 0.12);
+            --blue: #3b82f6;
+            --blue-dim: rgba(59, 130, 246, 0.12);
+            --cyan: #06b6d4;
+            --cyan-dim: rgba(6, 182, 212, 0.12);
+            --violet: #a78bfa;
+            --violet-dim: rgba(167, 139, 250, 0.12);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+            --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
+            --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+            --radius-full: 9999px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --duration: 0.2s;
+        }
+
+        /* =============================================================
+           RESET
+           ============================================================= */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body {
+            font-family: var(--font);
+            background: var(--bg-root);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: inherit; text-decoration: none; }
+        button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+        input { font-family: inherit; color: inherit; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: var(--radius-full); }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* =============================================================
+           TOP NAVIGATION
+           ============================================================= */
+        .topnav {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 56px; padding: 0 var(--sp-6);
+            background: rgba(9,9,11,0.8);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+        }
+        .topnav-left { display: flex; align-items: center; gap: var(--sp-5); }
+        .logo { display: flex; align-items: center; gap: var(--sp-2); font-weight: 600; font-size: 1rem; letter-spacing: -0.02em; white-space: nowrap; }
+        .logo-icon {
+            width: 24px; height: 24px; border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700; color: white;
+        }
+        .nav-divider { width: 1px; height: 20px; background: var(--border); }
+        .website-selector {
+            display: flex; align-items: center; gap: var(--sp-2);
+            padding: var(--sp-1) var(--sp-3); border-radius: var(--radius-sm);
+            font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
+            transition: all var(--duration) var(--ease); cursor: pointer;
+        }
+        .website-selector:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .website-selector svg { opacity: 0.5; }
+
+        .topnav-center { display: flex; align-items: center; }
+        .date-range {
+            display: flex; align-items: center;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 3px; gap: 2px;
+        }
+        .date-btn {
+            padding: 5px 12px; border-radius: 9px;
+            font-size: 0.75rem; font-weight: 500; color: var(--text-tertiary);
+            transition: all var(--duration) var(--ease); white-space: nowrap;
+        }
+        .date-btn:hover { color: var(--text-secondary); }
+        .date-btn.active { background: var(--bg-elevated); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+
+        .topnav-right { display: flex; align-items: center; gap: var(--sp-3); }
+        .live-badge {
+            display: flex; align-items: center; gap: 6px;
+            padding: 4px 10px; border-radius: var(--radius-full);
+            background: var(--green-dim); font-size: 0.7rem; font-weight: 600;
+            color: var(--green); letter-spacing: 0.03em;
+        }
+        .live-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
+
+        .icon-btn {
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            border-radius: var(--radius-sm); color: var(--text-tertiary);
+            transition: all var(--duration) var(--ease);
+        }
+        .icon-btn:hover { background: var(--bg-card-hover); color: var(--text-secondary); }
+
+        .search-box {
+            display: flex; align-items: center; gap: var(--sp-2);
+            padding: 5px 10px; border-radius: var(--radius-sm);
+            background: var(--bg-input); border: 1px solid var(--border);
+            transition: all var(--duration) var(--ease); width: 180px;
+        }
+        .search-box:focus-within { border-color: var(--border-active); background: var(--bg-card); }
+        .search-box input {
+            background: none; border: none; outline: none;
+            font-size: 0.8125rem; color: var(--text-secondary); width: 100%;
+        }
+        .search-box input::placeholder { color: var(--text-tertiary); }
+        .search-box svg { flex-shrink: 0; color: var(--text-tertiary); }
+        .search-kbd {
+            font-size: 0.625rem; color: var(--text-tertiary);
+            background: var(--bg-elevated); padding: 1px 5px; border-radius: 4px;
+            font-weight: 500; border: 1px solid var(--border);
+        }
+
+        /* =============================================================
+           MAIN CONTENT
+           ============================================================= */
+        .main { max-width: 1400px; margin: 0 auto; padding: var(--sp-8) var(--sp-6); }
+
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: var(--sp-5);
+        }
+        .section-title {
+            font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);
+            letter-spacing: 0.03em; text-transform: uppercase;
+        }
+
+        /* =============================================================
+           HERO STATISTICS — 4 large cards across the top
+           ============================================================= */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--sp-4);
+            margin-bottom: var(--sp-6);
+        }
+
+        .hero-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            transition: all 0.3s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        }
+        .hero-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .hero-card .stat-label {
+            font-size: 0.8125rem; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: var(--sp-3);
+        }
+        .hero-card .stat-row {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: var(--sp-4);
+        }
+        .hero-card .stat-number {
+            font-size: 2.5rem; font-weight: 700;
+            letter-spacing: -0.03em; line-height: 1; color: var(--text-primary);
+        }
+        .hero-card .stat-sparkline { height: 48px; margin-bottom: var(--sp-3); }
+        .hero-card .stat-compare { font-size: 0.75rem; color: var(--text-tertiary); }
+        .hero-card .stat-compare strong { color: var(--text-secondary); font-weight: 500; }
+
+        /* =============================================================
+           SECONDARY STAT CARDS — 6 cards in 3 columns
+           ============================================================= */
+        .secondary-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--sp-4);
+            margin-bottom: var(--sp-8);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            transition: all 0.3s var(--ease);
+        }
+        .stat-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.8125rem; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: var(--sp-2);
+        }
+        .stat-card .stat-row {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: var(--sp-3);
+        }
+        .stat-card .stat-number {
+            font-size: 1.75rem; font-weight: 700;
+            letter-spacing: -0.02em; line-height: 1; color: var(--text-primary);
+        }
+        .stat-card .stat-sparkline { height: 36px; margin-bottom: var(--sp-2); }
+        .stat-card .stat-compare { font-size: 0.75rem; color: var(--text-tertiary); }
+        .stat-card .stat-compare strong { color: var(--text-secondary); font-weight: 500; }
+
+        /* =============================================================
+           CHANGE BADGES — the +12.5% / -3.2% pill
+           ============================================================= */
+        .stat-badge {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 3px 8px; border-radius: var(--radius-full);
+            font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+        }
+        .stat-badge svg { flex-shrink: 0; }
+        .stat-badge.positive { background: var(--green-dim); color: var(--green); }
+        .stat-badge.negative { background: var(--red-dim); color: var(--red); }
+
+        /* =============================================================
+           SECTION 3: LIVE ACTIVITY — Globe + Feed
+           ============================================================= */
+        .live-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-6);
+            margin-bottom: var(--sp-8);
+        }
+
+        /* Globe container */
+        .globe-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .globe-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 1;
+        }
+        .globe-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        /* Overlay stats on top of the globe */
+        .globe-overlay {
+            position: absolute;
+            bottom: var(--sp-5);
+            left: var(--sp-5);
+            right: var(--sp-5);
+            display: flex;
+            justify-content: space-between;
+        }
+        .globe-stat {
+            background: rgba(9,9,11,0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: var(--sp-2) var(--sp-3);
+            text-align: center;
+        }
+        .globe-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        .globe-stat-label {
+            font-size: 0.625rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Activity feed panel */
+        .feed-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            display: flex;
+            flex-direction: column;
+        }
+        .feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--sp-4);
+            padding-bottom: var(--sp-3);
+            border-bottom: 1px solid var(--border);
+        }
+        .feed-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .feed-count {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+        .feed-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Individual activity item */
+        .feed-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--sp-3);
+            padding: var(--sp-3);
+            border-radius: var(--radius-sm);
+            transition: background var(--duration) var(--ease);
+            animation: feedSlideIn 0.3s var(--ease);
+        }
+        .feed-item:hover { background: var(--bg-card-hover); }
+
+        @keyframes feedSlideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .feed-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.875rem;
+        }
+        .feed-icon.entry   { background: var(--green-dim); }
+        .feed-icon.page    { background: var(--blue-dim); }
+        .feed-icon.click   { background: var(--violet-dim); }
+        .feed-icon.form    { background: var(--yellow-dim); }
+        .feed-icon.download{ background: var(--cyan-dim); }
+        .feed-icon.link    { background: rgba(251,146,60,0.12); }
+        .feed-icon.exit    { background: var(--red-dim); }
+
+        .feed-content { flex: 1; min-width: 0; }
+        .feed-text {
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .feed-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+            margin-top: 2px;
+            font-size: 0.6875rem;
+            color: var(--text-tertiary);
+        }
+        .feed-meta-dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+        .feed-time {
+            font-size: 0.6875rem;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* =============================================================
+           SECTION 4: TRAFFIC — main chart (DataFast style)
+           ============================================================= */
+        .chart-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            margin-bottom: var(--sp-8);
+            transition: all 0.3s var(--ease);
+        }
+        .chart-panel:hover { background: var(--bg-card-hover); border-color: var(--border-hover); }
+        .chart-top {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: var(--sp-4); flex-wrap: wrap; margin-bottom: var(--sp-5);
+        }
+        .chart-value {
+            font-size: 2.5rem; font-weight: 700; letter-spacing: -0.03em;
+            line-height: 1; color: var(--text-primary);
+        }
+        .chart-label { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 6px; }
+        .chart-tabs {
+            display: flex; align-items: center;
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 3px; gap: 2px;
+        }
+        .chart-btn {
+            padding: 5px 12px; border-radius: 9px;
+            font-size: 0.75rem; font-weight: 500; color: var(--text-tertiary);
+            transition: all var(--duration) var(--ease); white-space: nowrap;
+        }
+        .chart-btn:hover { color: var(--text-secondary); }
+        .chart-btn.active { background: var(--bg-elevated); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+        .chart-wrap { position: relative; height: 300px; }
+
+        /* =============================================================
+           SECTION 5: BREAKDOWN LISTS — Referrers / Pages / Audience
+           ============================================================= */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-4);
+            margin-bottom: var(--sp-8);
+        }
+        .breakdown-grid.grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+        .list-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            transition: all 0.3s var(--ease);
+        }
+        .list-panel:hover { background: var(--bg-card-hover); border-color: var(--border-hover); }
+        .list-body {
+            display: flex; flex-direction: column; gap: 2px;
+            max-height: 420px; overflow-y: auto;
+        }
+        .list-item {
+            display: flex; align-items: center; gap: var(--sp-3);
+            padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-sm);
+            transition: background var(--duration) var(--ease);
+        }
+        .list-item:hover { background: var(--bg-card-hover); }
+        .list-icon {
+            width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; background: var(--bg-elevated); overflow: hidden;
+        }
+        .list-icon img { width: 16px; height: 16px; }
+        .list-icon .browser-letter { font-weight: 700; font-size: 0.8125rem; }
+        .list-main { flex: 1; min-width: 0; }
+        .list-name {
+            font-size: 0.8125rem; font-weight: 500; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 5px;
+        }
+        .list-bar {
+            height: 3px; border-radius: var(--radius-full);
+            background: var(--bg-elevated); overflow: hidden;
+        }
+        .list-fill {
+            height: 100%; border-radius: var(--radius-full);
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            transition: width 0.6s var(--ease);
+        }
+        .list-value {
+            font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);
+            flex-shrink: 0; font-variant-numeric: tabular-nums;
+        }
+        .empty-row {
+            padding: var(--sp-8) var(--sp-3); text-align: center;
+            color: var(--text-tertiary); font-size: 0.8125rem;
+        }
+
+        /* =============================================================
+           SECTION 7: FUNNEL — conversion stages
+           ============================================================= */
+        .funnel-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-6);
+            margin-bottom: var(--sp-8);
+        }
+        .funnel-step { margin-bottom: var(--sp-5); }
+        .funnel-step:last-child { margin-bottom: 0; }
+        .funnel-row {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .funnel-label { font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); }
+        .funnel-meta { font-size: 0.8125rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+        .funnel-track { height: 8px; border-radius: var(--radius-full); background: var(--bg-elevated); overflow: hidden; }
+        .funnel-fill {
+            height: 100%; border-radius: var(--radius-full);
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+        }
+        .funnel-conversion {
+            display: flex; align-items: center; gap: var(--sp-2);
+            padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-md);
+            background: var(--green-dim); color: var(--green);
+            font-size: 0.8125rem; font-weight: 600; margin-top: var(--sp-4);
+        }
+
+        /* =============================================================
+           SECTION 8: CARD PERFORMANCE table
+           ============================================================= */
+        .table-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            margin-bottom: var(--sp-8);
+            overflow-x: auto;
+        }
+        .table-panel table { width: 100%; border-collapse: collapse; min-width: 560px; }
+        .table-panel thead th {
+            font-size: 0.6875rem; font-weight: 600; color: var(--text-tertiary);
+            text-transform: uppercase; letter-spacing: 0.05em; text-align: left;
+            padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .table-panel tbody td {
+            font-size: 0.8125rem; color: var(--text-secondary);
+            padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid rgba(255,255,255,0.03);
+            white-space: nowrap; font-variant-numeric: tabular-nums;
+        }
+        .table-panel tbody tr:hover { background: var(--bg-card-hover); }
+        .table-panel .badge-pill {
+            display: inline-block; padding: 2px 8px; border-radius: var(--radius-full);
+            font-size: 0.6875rem; font-weight: 600;
+            background: var(--violet-dim); color: var(--violet);
+        }
+        .table-panel .price-cell { color: var(--text-primary); font-weight: 600; }
+        .card-rank { color: var(--text-tertiary); }
+        .mobile-rank { display: none; }
+        .rate-hot { color: var(--green); font-weight: 600; }
+        .rate-cold { color: var(--text-tertiary); }
+
+        /* =============================================================
+           SECTION 9: CAMPAIGNS + JOURNEYS
+           ============================================================= */
+        .journey-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            margin-bottom: var(--sp-4);
+        }
+        .journey-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: var(--sp-3);
+        }
+        .journey-meta { font-size: 0.6875rem; color: var(--text-tertiary); }
+        .timeline { position: relative; padding-left: 20px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 5px; top: 4px; bottom: 4px;
+            width: 1px; background: var(--border);
+        }
+        .tl-item { position: relative; padding: 4px 0 10px 0; }
+        .tl-dot {
+            position: absolute; left: -18px; top: 7px;
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--bg-elevated); border: 2px solid var(--accent);
+        }
+        .tl-item.page .tl-dot { border-color: var(--blue); }
+        .tl-item.event .tl-dot { border-color: var(--violet); }
+        .tl-item.cta .tl-dot, .tl-item.goal .tl-dot { border-color: var(--green); }
+        .tl-time { font-size: 0.625rem; color: var(--text-tertiary); }
+        .tl-title { font-size: 0.75rem; color: var(--text-primary); font-weight: 500; }
+        .tl-sub { font-size: 0.6875rem; color: var(--text-tertiary); }
+        .tl-tag {
+            display: inline-block; margin-left: 6px; padding: 1px 7px;
+            border-radius: var(--radius-full); font-size: 0.625rem; font-weight: 600;
+            background: var(--violet-dim); color: var(--violet);
+        }
+        .tl-tag.cta { background: var(--green-dim); color: var(--green); }
+        .tl-tag.plan { background: var(--yellow-dim); color: var(--yellow); }
+
+        /* =============================================================
+           RESPONSIVE (consolidated at end so mobile overrides win)
+           ============================================================= */
+        @media (max-width: 1200px) {
+            .hero-stats { grid-template-columns: repeat(2, 1fr); }
+            .secondary-stats { grid-template-columns: repeat(2, 1fr); }
+            .breakdown-grid.grid-3 { grid-template-columns: 1fr 1fr; }
+            .topnav-right { gap: var(--sp-2); }
+            .search-box, .icon-btn { display: none; }
+        }
+
+        /* =============================================================
+           MOBILE (≤ 768px) — two-row nav, 2-col stat grids,
+           reading table becomes stacked cards, no horizontal scroll
+           ============================================================= */
+        @media (max-width: 767px) {
+            html { -webkit-text-size-adjust: 100%; }
+            body { -webkit-tap-highlight-color: transparent; }
+
+            /* ── topnav wraps into 2 rows; date range always visible ── */
+            .topnav {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 10px 14px 8px;
+                gap: 10px;
+            }
+            .topnav-left { gap: var(--sp-3); }
+            .site-name { display: none; }
+            .nav-divider { display: none; }
+            .logo { font-size: 0.9rem; }
+            .topnav-right { gap: var(--sp-2); }
+            .search-box, .icon-btn { display: none; }
+            .live-badge { padding: 5px 9px; }
+            .topnav-center { order: 3; width: 100%; }
+            .date-range {
+                width: 100%;
+                padding: 3px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .date-range::-webkit-scrollbar { display: none; }
+            .date-btn {
+                flex: 1 0 auto;
+                min-height: 38px;
+                padding: 8px 14px;
+                font-size: 0.75rem;
+                touch-action: manipulation;
+            }
+
+            /* ── layout & spacing ── */
+            .main { padding: var(--sp-5) 14px var(--sp-8); }
+            .section-header { margin-bottom: var(--sp-4); }
+            .section-title { font-size: 0.75rem; }
+
+            /* ── hero stats: 2×2 grid ── */
+            .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+            .hero-card { padding: var(--sp-4); border-radius: var(--radius-md); }
+            .hero-card .stat-label { font-size: 0.72rem; margin-bottom: var(--sp-2); }
+            .hero-card .stat-row { flex-wrap: wrap; row-gap: 4px; margin-bottom: var(--sp-3); }
+            .hero-card .stat-number { font-size: 1.7rem; }
+            .hero-card .stat-sparkline { height: 34px; margin-bottom: var(--sp-2); }
+            .hero-card .stat-compare { font-size: 0.68rem; line-height: 1.5; }
+            .stat-badge { padding: 2px 7px; font-size: 0.68rem; }
+
+            /* ── secondary stats: 2×3 grid ── */
+            .secondary-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-6); }
+            .stat-card { padding: var(--sp-4); border-radius: var(--radius-md); }
+            .stat-card .stat-label { font-size: 0.7rem; margin-bottom: var(--sp-2); }
+            .stat-card .stat-row { flex-wrap: wrap; row-gap: 4px; margin-bottom: var(--sp-3); }
+            .stat-card .stat-number { font-size: 1.4rem; }
+            .stat-card .stat-sparkline { height: 28px; }
+            .stat-card .stat-compare { font-size: 0.68rem; line-height: 1.5; }
+
+            /* ── live section ── */
+            .live-section { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-6); }
+            .live-section > * { min-width: 0; }
+            .globe-panel, .feed-panel { padding: var(--sp-4); }
+            .globe-wrapper { max-width: 280px; }
+            .feed-text { white-space: normal; }
+            .feed-list { min-width: 0; }
+
+            /* keep Chart.js canvases from forcing grid columns wider */
+            .stat-sparkline canvas, .chart-wrap canvas, .globe-canvas { width: 100% !important; }
+
+            /* ── chart ── */
+            .chart-panel { padding: var(--sp-4); margin-bottom: var(--sp-6); }
+            .chart-top { gap: var(--sp-3); margin-bottom: var(--sp-4); }
+            .chart-value { font-size: 1.9rem; }
+            .chart-label { font-size: 0.7rem; }
+            .chart-wrap { height: 220px; }
+            .chart-btn { min-height: 36px; }
+
+            /* ── breakdown lists ── */
+            .breakdown-grid, .breakdown-grid.grid-3 { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-6); }
+            .list-panel { padding: var(--sp-4); min-width: 0; }
+            .list-body { max-height: 320px; }
+
+            /* ── funnel ── */
+            .funnel-panel { padding: var(--sp-4); margin-bottom: var(--sp-6); }
+            .funnel-label { font-size: 0.75rem; }
+
+            /* ── reading-performance table → stacked cards ── */
+            .table-panel { padding: var(--sp-4); margin-bottom: var(--sp-6); }
+            .table-panel table { min-width: 0; }
+            .table-panel table, .table-panel tbody, .table-panel tr, .table-panel td { display: block; }
+            .table-panel thead { display: none; }
+            .table-panel tbody tr {
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                padding: 4px var(--sp-4) var(--sp-2);
+                margin-bottom: var(--sp-3);
+                background: var(--bg-card-hover);
+            }
+            .table-panel tbody td {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                align-items: center;
+                gap: var(--sp-3);
+                padding: var(--sp-2) 0;
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+                white-space: normal;
+                text-align: right;
+            }
+            .table-panel tbody td:last-child { border-bottom: none; }
+            .table-panel tbody td::before {
+                content: attr(data-label);
+                font-size: 0.62rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-tertiary);
+                text-align: left;
+            }
+            .table-panel td.card-rank { display: none; }
+            .table-panel td.card-name {
+                display: block;
+                padding: var(--sp-3) 0;
+                text-align: left;
+            }
+            .table-panel td.card-name::before { display: none; }
+            .table-panel td.card-name .card-title {
+                display: flex;
+                align-items: center;
+                gap: var(--sp-2);
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            .mobile-rank {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 26px;
+                height: 26px;
+                border-radius: 8px;
+                background: var(--violet-dim);
+                color: var(--violet);
+                font-size: 0.72rem;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            /* ── journeys ── */
+            .journey-panel { padding: var(--sp-4); margin-bottom: var(--sp-3); min-width: 0; }
+
+            .feed-count { font-size: 0.68rem; }
+        }
+
+        /* Very narrow phones (≤ 340px): single-column stats */
+        @media (max-width: 340px) {
+            .hero-stats, .secondary-stats { grid-template-columns: minmax(0, 1fr); }
+            .hero-card .stat-number { font-size: 2rem; }
+            .stat-card .stat-number { font-size: 1.6rem; }
+            .date-btn { padding: 8px 10px; font-size: 0.7rem; }
+            .main { padding-left: 12px; padding-right: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =============================================================
+         TOP NAVIGATION
+         ============================================================= -->
+    <nav class="topnav">
+        <div class="topnav-left">
+            <div class="logo">
+                <div class="logo-icon">S</div>
+                <span>Samiksha</span>
+            </div>
+            <div class="nav-divider"></div>
+            <button class="website-selector" id="website-selector">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span class="site-name">mywebsite.com</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+        </div>
+        <div class="topnav-center">
+            <div class="date-range" id="date-range">
+                <button class="date-btn active" data-range="today">Today</button>
+                <button class="date-btn" data-range="yesterday">Yesterday</button>
+                <button class="date-btn" data-range="7d">7 Days</button>
+                <button class="date-btn" data-range="30d">30 Days</button>
+                <button class="date-btn" data-range="90d">90 Days</button>
+            </div>
+        </div>
+        <div class="topnav-right">
+            <div class="live-badge"><span class="live-dot"></span><span>LIVE</span></div>
+            <div class="search-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Search...">
+                <span class="search-kbd">/</span>
+            </div>
+            <button class="icon-btn" title="Export">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button class="icon-btn" title="Settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- =============================================================
+         MAIN CONTENT
+         ============================================================= -->
+    <main class="main">
+
+        <!-- ===================== SECTION 2: HERO STATISTICS ===================== -->
+        <div id="section-stats">
+            <div class="section-header">
+                <div class="section-title">Overview</div>
+            </div>
+
+            <!-- 4 hero cards -->
+            <div class="hero-stats">
+                <!-- Card 1: Visitors Today -->
+                <div class="hero-card" data-stat="visitors">
+                    <div class="stat-label">Visitors Today</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-visitors" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-visitors">loading...</div>
+                </div>
+
+                <!-- Card 2: Live Visitors -->
+                <div class="hero-card" data-stat="live">
+                    <div class="stat-label">Live Visitors</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-live" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-live">loading...</div>
+                </div>
+
+                <!-- Card 3: Page Views -->
+                <div class="hero-card" data-stat="pageViews">
+                    <div class="stat-label">Page Views</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-pageViews" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-pageViews">loading...</div>
+                </div>
+
+                <!-- Card 4: Sessions -->
+                <div class="hero-card" data-stat="sessions">
+                    <div class="stat-label">Sessions</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-sessions" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-sessions">loading...</div>
+                </div>
+            </div>
+
+            <!-- 6 secondary cards -->
+            <div class="secondary-stats">
+                <!-- Card 5: Unique Visitors -->
+                <div class="stat-card" data-stat="unique">
+                    <div class="stat-label">Unique Visitors</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-unique" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-unique">loading...</div>
+                </div>
+
+                <!-- Card 6: Avg Session Duration -->
+                <div class="stat-card" data-stat="duration">
+                    <div class="stat-label">Avg Session Duration</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="duration">0:00</div>
+                        <div class="stat-badge" id="badge-duration" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-duration">loading...</div>
+                </div>
+
+                <!-- Card 7: Bounce Rate -->
+                <div class="stat-card" data-stat="bounceRate">
+                    <div class="stat-label">Bounce Rate</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="percent">0%</div>
+                        <div class="stat-badge" id="badge-bounceRate" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-bounceRate">loading...</div>
+                </div>
+
+                <!-- Card 8: Conversion Rate -->
+                <div class="stat-card" data-stat="conversion">
+                    <div class="stat-label">Conversion Rate</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="percent">0%</div>
+                        <div class="stat-badge" id="badge-conversion" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-conversion">loading...</div>
+                </div>
+
+                <!-- Card 9: Returning Visitors -->
+                <div class="stat-card" data-stat="returning">
+                    <div class="stat-label">Returning Visitors</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-returning" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-returning">loading...</div>
+                </div>
+
+                <!-- Card 10: New Visitors -->
+                <div class="stat-card" data-stat="newVisitors">
+                    <div class="stat-label">New Visitors</div>
+                    <div class="stat-row">
+                        <div class="stat-number" data-target="0" data-format="int">0</div>
+                        <div class="stat-badge" id="badge-newVisitors" style="display:none"></div>
+                    </div>
+                    <div class="stat-sparkline"><canvas></canvas></div>
+                    <div class="stat-compare" id="compare-newVisitors">loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 3: LIVE ACTIVITY ===================== -->
+        <div id="section-live">
+            <div class="section-header">
+                <div class="section-title">Live Activity</div>
+            </div>
+            <div class="live-section">
+                <!-- Left: Globe -->
+                <div class="globe-panel">
+                    <div class="globe-wrapper">
+                        <canvas class="globe-canvas" id="globe-canvas"></canvas>
+                        <div class="globe-overlay">
+                            <div class="globe-stat">
+                                <div class="globe-stat-value" id="globe-visitors">23</div>
+                                <div class="globe-stat-label">Live Now</div>
+                            </div>
+                            <div class="globe-stat">
+                                <div class="globe-stat-value" id="globe-countries">8</div>
+                                <div class="globe-stat-label">Countries</div>
+                            </div>
+                            <div class="globe-stat">
+                                <div class="globe-stat-value" id="globe-pages">47</div>
+                                <div class="globe-stat-label">Pages/min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Activity Feed -->
+                <div class="feed-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Recent Activity</div>
+                        <div class="feed-count" id="feed-count">23 active visitors</div>
+                    </div>
+                    <div class="feed-list" id="feed-list">
+                        <!-- Events are injected here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ===================== SECTION 4: TRAFFIC CHART ===================== -->
+        <div id="section-chart">
+            <div class="section-header">
+                <div class="section-title">Traffic</div>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-top">
+                    <div>
+                        <div class="chart-value" id="chart-value">0</div>
+                        <div class="chart-label" id="chart-label">Visitors over the last <span id="chart-period">14</span> days</div>
+                    </div>
+                    <div class="chart-tabs" id="chart-tabs">
+                        <button class="chart-btn active" data-metric="visitors">Visitors</button>
+                        <button class="chart-btn" data-metric="page_views">Page views</button>
+                        <button class="chart-btn" data-metric="sessions">Sessions</button>
+                    </div>
+                </div>
+                <div class="chart-wrap"><canvas id="main-chart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 5: TRAFFIC SOURCES ===================== -->
+        <div id="section-traffic">
+            <div class="section-header">
+                <div class="section-title">Traffic Sources</div>
+            </div>
+            <div class="breakdown-grid">
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Top Referrers</div>
+                        <div class="feed-count" id="referrer-count">—</div>
+                    </div>
+                    <div class="list-body" id="referrer-list"></div>
+                </div>
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Top Pages</div>
+                        <div class="feed-count" id="pages-count">—</div>
+                    </div>
+                    <div class="list-body" id="pages-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 6: AUDIENCE ===================== -->
+        <div id="section-audience">
+            <div class="section-header">
+                <div class="section-title">Audience</div>
+            </div>
+            <div class="breakdown-grid grid-3">
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Countries</div>
+                        <div class="feed-count" id="countries-count">—</div>
+                    </div>
+                    <div class="list-body" id="countries-list"></div>
+                </div>
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Devices</div>
+                        <div class="feed-count" id="devices-count">—</div>
+                    </div>
+                    <div class="list-body" id="devices-list"></div>
+                </div>
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Browsers</div>
+                        <div class="feed-count" id="browsers-count">—</div>
+                    </div>
+                    <div class="list-body" id="browsers-list"></div>
+                </div>
+            </div>
+        </div>
+
+    <!-- ===================== SECTION 7: CONVERSION FUNNEL ===================== -->
+        <div id="section-funnel">
+            <div class="section-header">
+                <div class="section-title">Conversion Funnel</div>
+            </div>
+            <div class="funnel-panel" id="funnel-panel">
+                <div style="padding: var(--sp-6); text-align:center; color:var(--text-tertiary); font-size:0.8125rem;">loading…</div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 8: READING PERFORMANCE ===================== -->
+        <div id="section-cards">
+            <div class="section-header">
+                <div class="section-title">Reading Performance — which cards people click</div>
+            </div>
+            <div class="table-panel">
+                <div style="padding: var(--sp-6); text-align:center; color:var(--text-tertiary); font-size:0.8125rem;">loading…</div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 9: CAMPAIGNS ===================== -->
+        <div id="section-campaigns">
+            <div class="section-header">
+                <div class="section-title">Campaign Sources (UTM)</div>
+            </div>
+            <div class="breakdown-grid">
+                <div class="list-panel">
+                    <div class="feed-header">
+                        <div class="feed-title">Top Sources</div>
+                        <div class="feed-count" id="campaign-count">—</div>
+                    </div>
+                    <div class="list-body" id="campaign-list"></div>
+                </div>
+                <div class="list-panel" style="max-height:500px; overflow-y:auto;">
+                    <div class="feed-header">
+                        <div class="feed-title">Recent Journeys</div>
+                        <div class="feed-count" id="journey-count">—</div>
+                    </div>
+                    <div id="journey-list"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- =============================================================
+         JAVASCRIPT
+         ============================================================= -->
+    <script>
+    (function () {
+        "use strict";
+
+        var API_BASE = "https://samiksha-analytics1.tewarisaksham20.workers.dev";
+        var currentRange = { start: "", end: "" };
+
+        /* IST calendar-day helper — the analytics day resets at 12:00 AM IST */
+        function istDayStart(offsetDays) {
+            var parts = new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
+            }).formatToParts(new Date());
+            var y, m, d;
+            parts.forEach(function (p) {
+                if (p.type === "year") y = +p.value;
+                if (p.type === "month") m = +p.value - 1;
+                if (p.type === "day") d = +p.value;
+            });
+            var utcMidnight = Date.UTC(y, m, d - offsetDays);
+            return new Date(utcMidnight - 5.5 * 3600 * 1000).toISOString();
+        }
+
+        function windowParams(extra) {
+            var p = "start=" + encodeURIComponent(currentRange.start) + "&end=" + encodeURIComponent(currentRange.end);
+            return extra ? p + "&" + extra : p;
+        }
+
+        function setRange(name) {
+            if (name === "today") {
+                currentRange = { start: istDayStart(0), end: new Date().toISOString() };
+            } else if (name === "yesterday") {
+                currentRange = { start: istDayStart(1), end: istDayStart(0) };
+            } else if (name === "7d") {
+                currentRange = { start: istDayStart(6), end: new Date().toISOString() };
+            } else if (name === "30d") {
+                currentRange = { start: istDayStart(29), end: new Date().toISOString() };
+            } else if (name === "90d") {
+                currentRange = { start: istDayStart(89), end: new Date().toISOString() };
+            }
+        }
+        setRange("today");
+
+        /* =============================================================
+           1. DATE RANGE SELECTOR
+           ============================================================= */
+        var dateRange = document.getElementById("date-range");
+        if (dateRange) {
+            var dateButtons = dateRange.querySelectorAll(".date-btn");
+            dateButtons.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    dateButtons.forEach(function (b) { b.classList.remove("active"); });
+                    btn.classList.add("active");
+                    setRange(btn.getAttribute("data-range"));
+                    fetchAll();
+                    fetchBreakdowns();
+                    fetchBusiness();
+                });
+            });
+        }
+
+        /* =============================================================
+           2. KEYBOARD SHORTCUT: "/" to focus search
+           ============================================================= */
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
+                e.preventDefault();
+                var input = document.querySelector(".search-box input");
+                if (input) input.focus();
+            }
+        });
+
+        /* =============================================================
+           3. SPARKLINE COLORS
+           ============================================================= */
+        var COLORS = {
+            visitors:    "#8b5cf6",
+            live:        "#22c55e",
+            pageViews:   "#3b82f6",
+            sessions:    "#06b6d4",
+            unique:      "#a78bfa",
+            duration:    "#eab308",
+            bounceRate:  "#ef4444",
+            conversion:  "#22c55e",
+            returning:   "#8b5cf6",
+            newVisitors: "#3b82f6"
+        };
+
+        /* =============================================================
+           4. HELPER: hex color to rgba string
+           ============================================================= */
+        function hexToRgba(hex, alpha) {
+            var r = parseInt(hex.slice(1, 3), 16);
+            var g = parseInt(hex.slice(3, 5), 16);
+            var b = parseInt(hex.slice(5, 7), 16);
+            return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+        }
+
+        /* =============================================================
+           5. CREATE A SPARKLINE (tiny Chart.js line chart)
+           ============================================================= */
+        var sparklineInstances = {};
+        function createSparkline(canvas, data, color, key) {
+            if (!canvas || typeof Chart === "undefined") return;
+            var ctx = canvas.getContext("2d");
+            if (sparklineInstances[key]) {
+                sparklineInstances[key].destroy();
+            }
+            var gradient = ctx.createLinearGradient(0, 0, 0, canvas.parentElement.clientHeight || 48);
+            gradient.addColorStop(0, hexToRgba(color, 0.25));
+            gradient.addColorStop(1, hexToRgba(color, 0.0));
+            sparklineInstances[key] = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: data.map(function (_, i) { return i; }),
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        borderWidth: 1.5,
+                        fill: true,
+                        backgroundColor: gradient,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: { x: { display: false }, y: { display: false } },
+                    animation: { duration: 1000, easing: "easeOutQuart" }
+                }
+            });
+        }
+
+        /* =============================================================
+           6. NUMBER FORMATTERS
+           ============================================================= */
+        function formatInt(n) { return Math.round(n).toLocaleString(); }
+        function formatPercent(n) { return n.toFixed(1) + "%"; }
+        function formatDuration(s) {
+            var m = Math.floor(s / 60);
+            var sec = Math.round(s % 60);
+            return m + ":" + (sec < 10 ? "0" : "") + sec;
+        }
+
+        var FORMATTERS = { int: formatInt, percent: formatPercent, duration: formatDuration };
+
+        /* =============================================================
+           7. ANIMATE NUMBER
+           ============================================================= */
+        function animateNumber(element, target, duration, formatter) {
+            if (!element) return;
+            var startTime = null;
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var progress = Math.min((timestamp - startTime) / duration, 1);
+                var ease = 1 - Math.pow(1 - progress, 3);
+                element.textContent = formatter(target * ease);
+                if (progress < 1) requestAnimationFrame(step);
+                else element.textContent = formatter(target);
+            }
+            requestAnimationFrame(step);
+        }
+
+        /* =============================================================
+           8. API FETCH HELPER
+           ============================================================= */
+        function apiFetch(path) {
+            return fetch(API_BASE + path, {
+                headers: { "Accept": "application/json" }
+            }).then(function (r) { return r.json(); });
+        }
+
+        /* =============================================================
+           9. UPDATE STAT CARD
+           ============================================================= */
+        function setStat(key, value, format) {
+            var card = document.querySelector('[data-stat="' + key + '"]');
+            if (!card) return;
+            var el = card.querySelector(".stat-number");
+            if (!el) return;
+            var formatter = FORMATTERS[format || "int"] || formatInt;
+            animateNumber(el, value, 800, formatter);
+        }
+
+        function setSparkline(key, data) {
+            var card = document.querySelector('[data-stat="' + key + '"]');
+            if (!card) return;
+            var canvas = card.querySelector("canvas");
+            createSparkline(canvas, data, COLORS[key] || "#8b5cf6", key);
+        }
+
+        function setCompare(key, text) {
+            var el = document.getElementById("compare-" + key);
+            if (el) el.innerHTML = text;
+        }
+
+        function setBadge(key, pct, positive) {
+            var el = document.getElementById("badge-" + key);
+            if (!el) return;
+            if (pct === null || pct === undefined) { el.style.display = "none"; return; }
+            var arrow = positive
+                ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>'
+                : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+            el.innerHTML = arrow + '<span>' + Math.abs(pct).toFixed(1) + '%</span>';
+            el.className = "stat-badge " + (positive ? "positive" : "negative");
+            el.style.display = "inline-flex";
+        }
+
+        /* =============================================================
+           10. FETCH & RENDER ALL STATS
+           ============================================================= */
+        function fetchAll() {
+            var daysInRange = Math.max(1, Math.round((new Date(currentRange.end) - new Date(currentRange.start)) / 86400000));
+            currentPeriod = Math.max(daysInRange, 14);
+            var chartParams = "start=" + encodeURIComponent(istDayStart(currentPeriod - 1)) + "&end=" + encodeURIComponent(currentRange.end);
+            Promise.all([
+                apiFetch("/api/stats/overview?" + windowParams()),
+                apiFetch("/api/stats/secondary?" + windowParams()),
+                apiFetch("/api/stats/trends?" + chartParams),
+                apiFetch("/api/stats/hourly?" + windowParams()),
+                apiFetch("/api/stats/live"),
+                apiFetch("/api/stats/events?summary=true"),
+                apiFetch("/api/stats/daily?" + chartParams)
+            ]).then(function (results) {
+                var overview = results[0] || {};
+                var secondary = results[1] || {};
+                var trends = results[2] || {};
+                var hourly = results[3] || {};
+                var live = results[4] || {};
+                var eventsSummary = results[5] || {};
+                var daily = results[6] || {};
+
+                var dailyArr = daily.daily || [];
+                var today = dailyArr.length > 0 ? dailyArr[dailyArr.length - 1] : {};
+                var yesterday = dailyArr.length > 1 ? dailyArr[dailyArr.length - 2] : null;
+
+                /* Helper: compute % change, return {pct, positive} or null */
+                function calcChange(todayVal, yestVal) {
+                    if (!yestVal || yestVal === 0) return null;
+                    var pct = ((todayVal - yestVal) / yestVal) * 100;
+                    return { pct: Math.round(pct * 10) / 10, positive: pct >= 0 };
+                }
+
+                /* Hero stats */
+                setStat("visitors", overview.visitors_today || 0, "int");
+                setStat("live", overview.live_visitors || 0, "int");
+                setStat("pageViews", overview.page_views_today || 0, "int");
+                setStat("sessions", overview.sessions_today || 0, "int");
+
+                /* Secondary stats — match API field names */
+                setStat("unique", secondary.unique_visitors_today || 0, "int");
+                setStat("duration", secondary.avg_session_duration || 0, "duration");
+                setStat("bounceRate", secondary.bounce_rate || 0, "percent");
+                setStat("conversion", secondary.conversion_rate || 0, "percent");
+                setStat("returning", secondary.returning_visitors_today || 0, "int");
+                setStat("newVisitors", secondary.new_visitors_today || 0, "int");
+
+                /* Dynamic comparisons vs yesterday */
+                var comparisons = [
+                    { key: "visitors",    today: today.visitors,    yest: yesterday ? yesterday.visitors : null },
+                    { key: "live",        today: overview.live_visitors, yest: null },
+                    { key: "pageViews",   today: today.page_views,  yest: yesterday ? yesterday.page_views : null },
+                    { key: "sessions",    today: today.sessions,    yest: yesterday ? yesterday.sessions : null },
+                    { key: "unique",      today: secondary.unique_visitors_today, yest: null },
+                    { key: "duration",    today: today.avg_duration, yest: yesterday ? yesterday.avg_duration : null, isDuration: true },
+                    { key: "bounceRate",  today: today.bounce_rate, yest: yesterday ? yesterday.bounce_rate : null, invert: true },
+                    { key: "conversion",  today: secondary.conversion_rate, yest: null },
+                    { key: "returning",   today: secondary.returning_visitors_today, yest: null },
+                    { key: "newVisitors", today: secondary.new_visitors_today, yest: null }
+                ];
+
+                comparisons.forEach(function (c) {
+                    var change = calcChange(c.today || 0, c.yest);
+                    if (change) {
+                        var isPositive = c.invert ? !change.positive : change.positive;
+                        setBadge(c.key, change.pct, isPositive);
+                        if (c.isDuration) {
+                            setCompare(c.key, 'vs <strong>' + formatDuration(c.yest || 0) + '</strong> yesterday');
+                        } else {
+                            setCompare(c.key, 'vs <strong>' + formatInt(c.yest || 0) + '</strong> yesterday');
+                        }
+                    } else {
+                        setBadge(c.key, null);
+                        if (c.key === "live") {
+                            setCompare(c.key, "real-time");
+                        } else {
+                            setCompare(c.key, "no prior data");
+                        }
+                    }
+                });
+
+                /* Sparklines from trends */
+                var trendData = trends.trends || [];
+                setSparkline("visitors", trendData.map(function (d) { return d.visitors || 0; }));
+                setSparkline("pageViews", trendData.map(function (d) { return d.page_views || 0; }));
+                setSparkline("sessions", trendData.map(function (d) { return d.sessions || 0; }));
+
+                /* Hourly sparkline for live */
+                var hourlyData = hourly.hourly || [];
+                setSparkline("live", hourlyData.map(function (d) { return d.visitors || 0; }));
+
+                /* Globe overlay */
+                var globeVisitors = document.getElementById("globe-visitors");
+                var globeCountries = document.getElementById("globe-countries");
+                var globePages = document.getElementById("globe-pages");
+                if (globeVisitors) globeVisitors.textContent = overview.live_visitors || 0;
+                if (globeCountries) globeCountries.textContent = 0;
+                if (globePages) {
+                    var totalHourlyViews = hourlyData.reduce(function (sum, d) { return sum + (d.visits || 0); }, 0);
+                    var pagesPerMin = hourlyData.length > 0 ? Math.round(totalHourlyViews / 60) : 0;
+                    globePages.textContent = pagesPerMin;
+                }
+
+                /* Feed count */
+                var feedCount = document.getElementById("feed-count");
+                if (feedCount) feedCount.textContent = (overview.live_visitors || 0) + " active visitors";
+
+                /* Store for main chart */
+                chartData = dailyArr;
+                renderChart();
+            }).catch(function (err) {
+                console.error("Failed to fetch stats:", err);
+            });
+        }
+
+        /* =============================================================
+           11. ACTIVITY FEED — real events from API
+           ============================================================= */
+        var feedList = document.getElementById("feed-list");
+        var seenEventIds = {};
+        var eventTypes = {
+            page_view:        { type: "page",   icon: "\uD83D\uDCC4", prefix: "Viewed " },
+            button_click:     { type: "click",  icon: "\uD83D\uDC46", prefix: "Clicked " },
+            form_submit:      { type: "form",   icon: "\uD83D\uDCE7", prefix: "Submitted " },
+            download:         { type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
+            link_click:       { type: "link",   icon: "\uD83D\uDD17", prefix: "Opened " },
+            file_download:    { type: "download", icon: "\u2B07\uFE0F", prefix: "Downloaded " },
+            page_leave:       { type: "exit",   icon: "\u274C",       prefix: "Left" },
+            pricing_card_click: { type: "card", icon: "\uD83C\uDFB4", prefix: "" },
+            cta_click:        { type: "cta",    icon: "\uD83D\uDC8C", prefix: "" },
+            section_view:     { type: "form",   icon: "\uD83C\uDFAF", prefix: "Reached section " },
+            scroll_milestone: { type: "click",  icon: "\u2B07",       prefix: "Scrolled " }
+        };
+
+        function formatTime(ts) {
+            if (!ts) return "";
+            var d = new Date(ts);
+            if (isNaN(d)) return "";
+            var now = new Date();
+            var diff = Math.max(0, Math.round((now - d) / 1000));
+            if (diff < 5) return "just now";
+            if (diff < 60) return diff + "s ago";
+            if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+            if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+            return d.toLocaleDateString();
+        }
+
+        function addFeedItem(ev, time, prepend) {
+            if (!feedList) return;
+            var item = document.createElement("div");
+            item.className = "feed-item";
+            var pageShort = ev.page || "/";
+            try { pageShort = new URL(pageShort).pathname; } catch(e) {}
+            item.innerHTML =
+                '<div class="feed-icon ' + ev.type + '">' + ev.icon + '</div>' +
+                '<div class="feed-content">' +
+                    '<div class="feed-text">' + ev.text + '</div>' +
+                    '<div class="feed-meta">' +
+                        '<span>' + pageShort + '</span>' +
+                        '<span class="feed-meta-dot"></span>' +
+                        '<span>' + ev.browser + '</span>' +
+                        '<span class="feed-meta-dot"></span>' +
+                        '<span>' + ev.device + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="feed-time">' + time + '</div>';
+            if (prepend) feedList.insertBefore(item, feedList.firstChild);
+            else feedList.appendChild(item);
+            while (feedList.children.length > 20) feedList.removeChild(feedList.lastChild);
+        }
+
+        function pollEvents() {
+            apiFetch("/api/stats/events").then(function (data) {
+                var events = data.events || [];
+                if (events.length === 0) return;
+
+                events.slice().reverse().forEach(function (ev, idx) {
+                    if (seenEventIds[ev.id]) return;
+                    seenEventIds[ev.id] = true;
+                    var mapped = eventTypes[ev.event_type] || { type: "page", icon: "\uD83D\uDCC4", prefix: "" };
+                    var target = ev.event_target || "";
+                    var text = "";
+                    if (ev.event_type === "pricing_card_click" || ev.event_type === "cta_click") {
+                        var props = ev.properties || {};
+                        var name = props.name || props.plan || target;
+                        text = (ev.event_type === "cta_click" ? "\uD83D\uDC8C Booked " : "\uD83C\uDFB4 Selected ")
+                            + name
+                            + (props.price ? "  ₹" + props.price : "");
+                    } else {
+                        text = mapped.prefix + (target || "page");
+                        if (ev.event_type === "page_leave") text = "Left page";
+                    }
+                    addFeedItem({
+                        type: mapped.type,
+                        icon: mapped.icon,
+                        text: text,
+                        browser: ev.browser || "Unknown",
+                        device: ev.device_type || "Unknown",
+                        page: ev.page_url || "/"
+                    }, formatTime(ev.timestamp), true);
+                });
+            }).catch(function () {});
+        }
+
+        /* =============================================================
+           12. GLOBE — Canvas wireframe globe (keep existing logic)
+           ============================================================= */
+        (function initGlobe() {
+            var canvas = document.getElementById("globe-canvas");
+            if (!canvas) return;
+            var ctx = canvas.getContext("2d");
+            var visitors = [
+                { lat: 40.71, lon: -74.01, city: "New York",  color: "#8b5cf6" },
+                { lat: 51.51, lon: -0.13,  city: "London",    color: "#3b82f6" },
+                { lat: 35.68, lon: 139.65, city: "Tokyo",     color: "#06b6d4" },
+                { lat: -33.87,lon: 151.21, city: "Sydney",    color: "#22c55e" },
+                { lat: -23.55,lon: -46.63, city: "São Paulo", color: "#eab308" },
+                { lat: 19.08, lon: 72.88,  city: "Mumbai",    color: "#f97316" },
+                { lat: 52.52, lon: 13.41,  city: "Berlin",    color: "#a78bfa" },
+                { lat: 48.86, lon: 2.35,   city: "Paris",     color: "#ec4899" },
+                { lat: 1.35,  lon: 103.82, city: "Singapore", color: "#14b8a6" },
+                { lat: 25.20, lon: 55.27,  city: "Dubai",     color: "#f43f5e" },
+                { lat: 37.57, lon: 126.98, city: "Seoul",     color: "#8b5cf6" },
+                { lat: 55.76, lon: 37.62,  city: "Moscow",    color: "#3b82f6" }
+            ];
+            var rotation = 0;
+            var dpr = window.devicePixelRatio || 1;
+            function resize() {
+                var rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            resize();
+            window.addEventListener("resize", resize);
+            function project(lat, lon) {
+                var phi = (90 - lat) * Math.PI / 180;
+                var theta = (lon + rotation) * Math.PI / 180;
+                return {
+                    x: Math.sin(phi) * Math.cos(theta),
+                    y: Math.cos(phi),
+                    z: Math.sin(phi) * Math.sin(theta)
+                };
+            }
+            function draw() {
+                var w = canvas.width / dpr;
+                var h = canvas.height / dpr;
+                var cx = w / 2;
+                var cy = h / 2;
+                var r = Math.min(w, h) / 2 - 24;
+                ctx.clearRect(0, 0, w, h);
+                var glow = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * 1.3);
+                glow.addColorStop(0, "rgba(139, 92, 246, 0.08)");
+                glow.addColorStop(1, "rgba(139, 92, 246, 0)");
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * 1.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "rgba(139, 92, 246, 0.25)";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+                ctx.lineWidth = 0.5;
+                [-60, -30, 0, 30, 60].forEach(function (lat) {
+                    var phi = (90 - lat) * Math.PI / 180;
+                    var latR = r * Math.sin(phi);
+                    var latY = cy - r * Math.cos(phi);
+                    ctx.beginPath();
+                    ctx.ellipse(cx, latY, latR, latR * 0.15, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+                for (var lon = 0; lon < 360; lon += 30) {
+                    ctx.beginPath();
+                    var first = true;
+                    for (var lat = -90; lat <= 90; lat += 3) {
+                        var p = project(lat, lon);
+                        var sx = cx + p.x * r;
+                        var sy = cy - p.y * r;
+                        if (first) { ctx.moveTo(sx, sy); first = false; }
+                        else ctx.lineTo(sx, sy);
+                    }
+                    ctx.stroke();
+                }
+                var time = Date.now() / 1000;
+                visitors.forEach(function (v) {
+                    var p = project(v.lat, v.lon);
+                    if (p.z < -0.1) return;
+                    var sx = cx + p.x * r;
+                    var sy = cy - p.y * r;
+                    var alpha = Math.max(0, 0.3 + p.z * 0.7);
+                    var pr = parseInt(v.color.slice(1, 3), 16);
+                    var pg = parseInt(v.color.slice(3, 5), 16);
+                    var pb = parseInt(v.color.slice(5, 7), 16);
+                    var pulseR = 8 + Math.sin(time * 2 + v.lat) * 3;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, pulseR, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(" + pr + "," + pg + "," + pb + "," + (alpha * 0.15).toFixed(2) + ")";
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, pulseR * 0.6, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(" + pr + "," + pg + "," + pb + "," + (alpha * 0.25).toFixed(2) + ")";
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(" + pr + "," + pg + "," + pb + "," + alpha.toFixed(2) + ")";
+                    ctx.fill();
+                    var dotGlow = ctx.createRadialGradient(sx, sy, 0, sx, sy, 12);
+                    dotGlow.addColorStop(0, "rgba(" + pr + "," + pg + "," + pb + "," + (alpha * 0.4).toFixed(2) + ")");
+                    dotGlow.addColorStop(1, "rgba(" + pr + "," + pg + "," + pb + ",0)");
+                    ctx.fillStyle = dotGlow;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    if (alpha > 0.35) {
+                        ctx.font = "600 10px Inter, sans-serif";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "middle";
+                        var labelX = sx + 9;
+                        var labelY = sy - 1;
+                        var labelText = v.city;
+                        var textW = ctx.measureText(labelText).width;
+                        var pillW = textW + 10;
+                        var pillH = 18;
+                        var pillX = labelX - 5;
+                        var pillY = labelY - pillH / 2;
+                        ctx.fillStyle = "rgba(9, 9, 11, " + (alpha * 0.75).toFixed(2) + ")";
+                        ctx.beginPath();
+                        var rr = 4;
+                        ctx.moveTo(pillX + rr, pillY);
+                        ctx.lineTo(pillX + pillW - rr, pillY);
+                        ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + rr);
+                        ctx.lineTo(pillX + pillW, pillY + pillH - rr);
+                        ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - rr, pillY + pillH);
+                        ctx.lineTo(pillX + rr, pillY + pillH);
+                        ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - rr);
+                        ctx.lineTo(pillX, pillY + rr);
+                        ctx.quadraticCurveTo(pillX, pillY, pillX + rr, pillY);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.strokeStyle = "rgba(" + pr + "," + pg + "," + pb + "," + (alpha * 0.4).toFixed(2) + ")";
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(pillX + rr, pillY);
+                        ctx.lineTo(pillX + pillW - rr, pillY);
+                        ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + rr);
+                        ctx.lineTo(pillX + pillW, pillY + pillH - rr);
+                        ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - rr, pillY + pillH);
+                        ctx.lineTo(pillX + rr, pillY + pillH);
+                        ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - rr);
+                        ctx.lineTo(pillX, pillY + rr);
+                        ctx.quadraticCurveTo(pillX, pillY, pillX + rr, pillY);
+                        ctx.closePath();
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.arc(labelX + 1, labelY, 2.5, 0, Math.PI * 2);
+                        ctx.fillStyle = "rgba(" + pr + "," + pg + "," + pb + "," + alpha.toFixed(2) + ")";
+                        ctx.fill();
+                        ctx.fillStyle = "rgba(255, 255, 255, " + (alpha * 0.9).toFixed(2) + ")";
+                        ctx.fillText(labelText, labelX + 8, labelY + 0.5);
+                    }
+                });
+                rotation += 0.15;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        /* =============================================================
+            13. TRAFFIC CHART + BREAKDOWN SECTIONS
+           ============================================================= */
+        var chartData = [];
+        var currentChartMetric = "visitors";
+        var currentPeriod = 14;
+        var mainChart = null;
+
+        function escapeHtml(s) {
+            return String(s === null || s === undefined ? "" : s)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+
+        function hostLabel(ref) {
+            if (!ref) return "Direct";
+            var h = ref;
+            try { h = new URL(ref).hostname; } catch (e) {}
+            return h.replace(/^www\./, "") || "Direct";
+        }
+
+        function displayPage(u) {
+            try {
+                var url = new URL(u);
+                return url.pathname === "/" ? url.hostname : url.pathname;
+            } catch (e) { return u || "/"; }
+        }
+
+        function shortDate(iso) {
+            var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            var d = new Date(iso);
+            return d.getDate() + " " + months[d.getMonth()];
+        }
+
+        function emptyRow(text) {
+            return '<div class="empty-row">' + escapeHtml(text) + '</div>';
+        }
+
+        function itemRow(icon, name, value, max) {
+            var el = document.createElement("div");
+            el.className = "list-item";
+            var bar = max > 0 ? Math.round((value / max) * 100) : 0;
+            el.innerHTML =
+                '<div class="list-icon">' + icon + '</div>' +
+                '<div class="list-main">' +
+                    '<div class="list-name">' + escapeHtml(name) + '</div>' +
+                    '<div class="list-bar"><div class="list-fill" style="width:' + bar + '%"></div></div>' +
+                '</div>' +
+                '<div class="list-value">' + formatInt(value) + '</div>';
+            return el;
+        }
+
+        var FLAGS = {
+            "india": "🇮🇳", "united states": "🇺🇸", "united states of america": "🇺🇸", "usa": "🇺🇸",
+            "united kingdom": "🇬🇧", "uk": "🇬🇧", "germany": "🇩🇪", "france": "🇫🇷", "canada": "🇨🇦",
+            "australia": "🇦🇺", "brazil": "🇧🇷", "japan": "🇯🇵", "china": "🇨🇳", "russia": "🇷🇺",
+            "italy": "🇮🇹", "spain": "🇪🇸", "netherlands": "🇳🇱", "switzerland": "🇨🇭", "sweden": "🇸🇪",
+            "norway": "🇳🇴", "finland": "🇫🇮", "denmark": "🇩🇰", "poland": "🇵🇱", "portugal": "🇵🇹",
+            "belgium": "🇧🇪", "austria": "🇦🇹", "ireland": "🇮🇪", "greece": "🇬🇷", "turkey": "🇹🇷",
+            "israel": "🇮🇱", "uae": "🇦🇪", "united arab emirates": "🇦🇪", "saudi arabia": "🇸🇦",
+            "qatar": "🇶🇦", "singapore": "🇸🇬", "malaysia": "🇲🇾", "indonesia": "🇮🇩", "thailand": "🇹🇭",
+            "vietnam": "🇻🇳", "philippines": "🇵🇭", "south korea": "🇰🇷", "south africa": "🇿🇦",
+            "nigeria": "🇳🇬", "egypt": "🇪🇬", "kenya": "🇰🇪", "argentina": "🇦🇷", "mexico": "🇲🇽",
+            "chile": "🇨🇱", "colombia": "🇨🇴", "new zealand": "🇳🇿", "pakistan": "🇵🇰",
+            "bangladesh": "🇧🇩", "nepal": "🇳🇵", "sri lanka": "🇱🇰", "ukraine": "🇺🇦", "romania": "🇷🇴"
+        };
+        function flagFor(name) {
+            return FLAGS[String(name || "").toLowerCase().trim()] || "🌐";
+        }
+
+        function renderReferrers(referrers) {
+            var list = document.getElementById("referrer-list");
+            var countEl = document.getElementById("referrer-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = referrers.reduce(function (a, r) { return a + (r.visits || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " visits";
+            if (referrers.length === 0) { list.innerHTML = emptyRow("No referrers in this period."); return; }
+            var max = referrers[0].visits || 1;
+            referrers.forEach(function (r) {
+                var icon = /^https?:/i.test(r.referrer || "")
+                    ? '<img src="https://www.google.com/s2/favicons?domain=' + encodeURIComponent(hostLabel(r.referrer)) + '&sz=32" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+                    : '<span>🌐</span>';
+                list.appendChild(itemRow(icon, r.referrer ? hostLabel(r.referrer) : "Direct", r.visits, max));
+            });
+        }
+
+        function renderPages(pages) {
+            var list = document.getElementById("pages-list");
+            var countEl = document.getElementById("pages-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = pages.reduce(function (a, p) { return a + (p.visits || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " views";
+            if (pages.length === 0) { list.innerHTML = emptyRow("No pages in this period."); return; }
+            var max = pages[0].visits || 1;
+            pages.forEach(function (p) {
+                list.appendChild(itemRow('<span>📄</span>', displayPage(p.page_url), p.visits, max));
+            });
+        }
+
+        function renderCountries(countries) {
+            var list = document.getElementById("countries-list");
+            var countEl = document.getElementById("countries-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = countries.reduce(function (a, c) { return a + (c.count || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " visits";
+            if (countries.length === 0) { list.innerHTML = emptyRow("No location data in this period."); return; }
+            var max = countries[0].count || 1;
+            countries.forEach(function (c) {
+                list.appendChild(itemRow('<span>' + flagFor(c.country) + '</span>', c.country || "Unknown", c.count, max));
+            });
+        }
+
+        var DEVICE_ICONS = { desktop: "💻", mobile: "📱", tablet: "📖" };
+        function renderDevices(devices) {
+            var list = document.getElementById("devices-list");
+            var countEl = document.getElementById("devices-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = devices.reduce(function (a, d) { return a + (d.count || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " sessions";
+            if (devices.length === 0) { list.innerHTML = emptyRow("No device data in this period."); return; }
+            var max = devices[0].count || 1;
+            devices.forEach(function (d) {
+                var key = String(d.device_type || "").toLowerCase();
+                list.appendChild(itemRow('<span>' + (DEVICE_ICONS[key] || "🖥️") + '</span>', d.device_type || "Unknown", d.count, max));
+            });
+        }
+
+        var BROWSER_COLORS = {
+            chrome: "#3b82f6", firefox: "#f97316", safari: "#0ea5e9",
+            edge: "#38bdf8", opera: "#ef4444", "internet explorer": "#2563eb"
+        };
+        function renderBrowsers(browsers) {
+            var list = document.getElementById("browsers-list");
+            var countEl = document.getElementById("browsers-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = browsers.reduce(function (a, b) { return a + (b.count || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " sessions";
+            if (browsers.length === 0) { list.innerHTML = emptyRow("No browser data in this period."); return; }
+            var max = browsers[0].count || 1;
+            browsers.forEach(function (b) {
+                var key = String(b.browser || "").toLowerCase();
+                var color = BROWSER_COLORS[key] || "#a1a1aa";
+                var letter = String(b.browser || "?").charAt(0).toUpperCase();
+                list.appendChild(itemRow('<span class="browser-letter" style="color:' + color + '">' + escapeHtml(letter) + '</span>', b.browser || "Unknown", b.count, max));
+            });
+        }
+
+        function fetchBreakdowns() {
+            Promise.all([
+                apiFetch("/api/stats/referrers?" + windowParams("limit=10")),
+                apiFetch("/api/stats/pages?" + windowParams("limit=10")),
+                apiFetch("/api/stats/countries?" + windowParams("limit=12")),
+                apiFetch("/api/stats/devices?" + windowParams()),
+                apiFetch("/api/stats/browsers?" + windowParams())
+            ]).then(function (res) {
+                renderReferrers(res[0].referrers || []);
+                renderPages(res[1].pages || []);
+                renderCountries(res[2].countries || []);
+                renderDevices(res[3].devices || []);
+                renderBrowsers(res[4].browsers || []);
+            }).catch(function (err) {
+                console.error("Failed to fetch breakdown sections:", err);
+            });
+        }
+
+        function renderChart() {
+            var canvas = document.getElementById("main-chart");
+            if (!canvas || typeof Chart === "undefined") return;
+            var metric = currentChartMetric;
+            var series = (chartData || []).map(function (d) { return { date: d.date, value: d[metric] || 0 }; });
+            var total = series.reduce(function (a, d) { return a + d.value; }, 0);
+            var valueEl = document.getElementById("chart-value");
+            var periodEl = document.getElementById("chart-period");
+            var labelEl = document.getElementById("chart-label");
+            if (valueEl) valueEl.textContent = formatInt(total);
+            if (periodEl) periodEl.textContent = String(currentPeriod);
+            if (labelEl) {
+                labelEl.textContent = (metric === "visitors" ? "Visitors" : metric === "page_views" ? "Page views" : "Sessions") +
+                    " over the last " + currentPeriod + " days";
+            }
+
+            var colors = { visitors: "#8b5cf6", page_views: "#3b82f6", sessions: "#06b6d4" };
+            var color = colors[metric] || "#8b5cf6";
+            if (mainChart) mainChart.destroy();
+            var ctx = canvas.getContext("2d");
+            var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, hexToRgba(color, 0.22));
+            gradient.addColorStop(1, hexToRgba(color, 0));
+            mainChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: (chartData || []).map(function (d) { return shortDate(d.date); }),
+                    datasets: [{
+                        data: series.map(function (d) { return d.value; }),
+                        borderColor: color,
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: gradient,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        pointHoverBackgroundColor: color
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "rgba(9, 9, 11, 0.92)",
+                            borderColor: "rgba(255, 255, 255, 0.1)",
+                            borderWidth: 1,
+                            titleColor: "#fafafa",
+                            bodyColor: "#fafafa",
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function (c) {
+                                    return " " + formatInt(c.parsed.y) + " " + (metric === "page_views" ? "views" : metric);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { color: "#52525b", font: { size: 11 }, maxRotation: 0, autoSkipPadding: 20 }
+                        },
+                        y: {
+                            border: { display: false },
+                            grid: { color: "rgba(255, 255, 255, 0.05)" },
+                            ticks: {
+                                color: "#52525b", font: { size: 11 },
+                                maxTicksLimit: 6, callback: function (v) { return formatInt(v); }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        var chartTabs = document.getElementById("chart-tabs");
+        if (chartTabs) {
+            chartTabs.querySelectorAll(".chart-btn").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    chartTabs.querySelectorAll(".chart-btn").forEach(function (b) { b.classList.remove("active"); });
+                    btn.classList.add("active");
+                    currentChartMetric = btn.getAttribute("data-metric");
+                    renderChart();
+                });
+            });
+        }
+
+        /* =============================================================
+            14. CONVERSION FUNNEL
+           ============================================================= */
+        function renderFunnel(funnel) {
+            var panel = document.getElementById("funnel-panel");
+            if (!panel) return;
+            panel.innerHTML = "";
+            var steps = funnel || [];
+            if (steps.length === 0) {
+                panel.innerHTML = '<div class="empty-row">No funnel data in this period yet.</div>';
+                return;
+            }
+            var maxCount = Math.max(steps[0].count || 1, 1);
+            steps.forEach(function (s) {
+                var width = Math.max(2, Math.round(((s.count || 0) / maxCount) * 100));
+                var row = document.createElement("div");
+                row.className = "funnel-step";
+                row.innerHTML =
+                    '<div class="funnel-row">' +
+                        '<span class="funnel-label">' + escapeHtml(s.label) + '</span>' +
+                        '<span class="funnel-meta">' + formatInt(s.count) + ' <span style="color:var(--text-tertiary);font-weight:500;">(' + s.pct + '%)</span></span>' +
+                    '</div>' +
+                    '<div class="funnel-track"><div class="funnel-fill" style="width:' + width + '%"></div></div>';
+                panel.appendChild(row);
+            });
+            var first = steps[0].count || 0;
+            var last = steps[steps.length - 1].count || 0;
+            var conv = first > 0 ? (last / first) * 100 : 0;
+            var convEl = document.createElement("div");
+            convEl.className = "funnel-conversion";
+            convEl.innerHTML = '▲ <strong>' + conv.toFixed(1) + '%</strong>&nbsp;overall conversion (visitor → booking action)';
+            panel.appendChild(convEl);
+        }
+
+        /* =============================================================
+            15. READING PERFORMANCE TABLE
+           ============================================================= */
+        function renderCards(cards) {
+            var panel = document.querySelector("#section-cards .table-panel");
+            if (!panel) return;
+            if (!cards || cards.length === 0) {
+                panel.innerHTML = '<div class="empty-row">No pricing-card clicks yet. Clicks start appearing once the new tracker ships.</div>';
+                return;
+            }
+            var totalClicks = cards.reduce(function (a, c) { return a + (c.clicks || 0); }, 0);
+            var html = '<table><thead><tr>' +
+                '<th>#</th><th>Reading</th><th>Category</th><th>Price</th><th>Duration</th><th>Clicks</th><th>% of clicks</th><th>CTA clicks</th><th>CTA rate</th>' +
+                '</tr></thead><tbody>';
+            cards.forEach(function (c, i) {
+                var clickPct = totalClicks > 0 ? Math.round((c.clicks / totalClicks) * 1000) / 10 : 0;
+                var rateCls = (c.cta_rate || 0) >= 30 ? "rate-hot" : "rate-cold";
+                var badge = c.badge ? ' <span class="badge-pill">' + escapeHtml(c.badge) + '</span>' : "";
+                html += '<tr>' +
+                    '<td class="card-rank">' + (i + 1) + '</td>' +
+                    '<td class="card-name"><span class="card-title"><span class="mobile-rank">' + (i + 1) + '</span>' + escapeHtml(c.name) + badge + '</span></td>' +
+                    '<td data-label="Category">' + escapeHtml(c.category || "—") + '</td>' +
+                    '<td class="price-cell" data-label="Price">' + (c.price ? c.currency + " " + formatInt(c.price) : "—") + '</td>' +
+                    '<td data-label="Duration">' + escapeHtml(c.duration || "—") + '</td>' +
+                    '<td data-label="Clicks">' + formatInt(c.clicks) + '</td>' +
+                    '<td data-label="% of clicks">' + clickPct + '%</td>' +
+                    '<td data-label="CTA clicks">' + formatInt(c.ctas || 0) + '</td>' +
+                    '<td class="' + rateCls + '" data-label="CTA rate">' + (c.cta_rate || 0) + '%</td>' +
+                    '</tr>';
+            });
+            html += '</tbody></table>';
+            panel.innerHTML = html;
+        }
+
+        /* =============================================================
+            16. CAMPAIGNS + JOURNEYS
+           ============================================================= */
+        function renderCampaigns(campaigns) {
+            var list = document.getElementById("campaign-list");
+            var countEl = document.getElementById("campaign-count");
+            if (!list) return;
+            list.innerHTML = "";
+            var total = campaigns.reduce(function (a, c) { return a + (c.visits || 0); }, 0);
+            if (countEl) countEl.textContent = formatInt(total) + " visits";
+            if (!campaigns || campaigns.length === 0) {
+                list.innerHTML = emptyRow("No campaign data in this period.");
+                return;
+            }
+            var max = campaigns[0].visits || 1;
+            campaigns.forEach(function (c) {
+                var icon = c.source === "direct"
+                    ? '<span>🌐</span>'
+                    : '<img src="https://www.google.com/s2/favicons?domain=' + encodeURIComponent(c.source) + '&sz=32" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+                var sub = c.medium ? c.medium : (c.unique_visitors + " unique");
+                list.appendChild(itemRow(icon, c.source, c.visits, max));
+                var lastChild = list.lastChild;
+                var subEl = lastChild.querySelector(".list-name");
+                if (subEl) subEl.setAttribute("title", sub);
+            });
+        }
+
+        function journeyItem(kind, time, title, sub, tagText, tagCls) {
+            var el = document.createElement("div");
+            el.className = "tl-item " + kind;
+            var tag = tagText ? ' <span class="tl-tag ' + (tagCls || "") + '">' + escapeHtml(tagText) + '</span>' : "";
+            el.innerHTML =
+                '<span class="tl-dot"></span>' +
+                '<div class="tl-time">' + (time || "") + '</div>' +
+                '<div class="tl-title">' + escapeHtml(title) + tag + '</div>' +
+                (sub ? '<div class="tl-sub">' + escapeHtml(sub) + '</div>' : "");
+            return el;
+        }
+
+        function shortPage(u) {
+            try {
+                var p = new URL(u).pathname;
+                return p === "/" ? new URL(u).hostname.replace(/^www\./, "") : p;
+            } catch (e) { return u || "/"; }
+        }
+
+        function renderJourneys(journeys) {
+            var holder = document.getElementById("journey-list");
+            var countEl = document.getElementById("journey-count");
+            if (!holder) return;
+            holder.innerHTML = "";
+            if (countEl) countEl.textContent = (journeys ? journeys.length : 0) + " sessions";
+            if (!journeys || journeys.length === 0) {
+                holder.innerHTML = '<div class="empty-row">No journeys recorded yet.</div>';
+                return;
+            }
+            journeys.forEach(function (j) {
+                var panel = document.createElement("div");
+                panel.className = "journey-panel";
+                var started = formatTime(j.started_at);
+                var sourceTag = j.utm_source ? '<span class="badge-pill" style="margin-left:6px;">' + escapeHtml(j.utm_source) + '</span>' : "";
+                var head = document.createElement("div");
+                head.className = "journey-head";
+                head.innerHTML =
+                    '<div class="feed-title">' + shortPage(j.entry_page) + sourceTag + '</div>' +
+                    '<div class="journey-meta">' + (started || "") + " · " + (j.timeline ? j.timeline.length : 0) + " steps" + '</div>';
+                panel.appendChild(head);
+
+                var tl = document.createElement("div");
+                tl.className = "timeline";
+                var steps = j.timeline || [];
+                steps.forEach(function (s) {
+                    var t = formatTime(s.time);
+                    if (s.kind === "page") {
+                        tl.appendChild(journeyItem("page", t, "Visited " + shortPage(s.target), s.label || ""));
+                    } else if (s.event_type === "pricing_card_click") {
+                        var p = s.properties || {};
+                        var price = p.price ? " · " + p.currency + " " + formatInt(p.price) : "";
+                        tl.appendChild(journeyItem("event", t, "Selected " + (p.name || s.target), p.category ? p.category : "", "PLAN", "plan"));
+                    } else if (s.event_type === "cta_click") {
+                        var p2 = s.properties || {};
+                        tl.appendChild(journeyItem("cta", t, "Booking action: " + (p2.target || "cta"), p2.plan ? "Plan: " + p2.plan : "", "CTA", "cta"));
+                    } else if (s.event_type === "form_submit") {
+                        tl.appendChild(journeyItem("cta", t, "Submitted form", s.target || "", "FORM", "cta"));
+                    } else if (s.event_type === "link_click") {
+                        tl.appendChild(journeyItem("event", t, "Opened external link", shortPage(s.target || ""), "LINK"));
+                    } else if (s.event_type === "section_view") {
+                        var p3 = s.properties || {};
+                        tl.appendChild(journeyItem("event", t, "Reached section " + (p3.name || s.target), p3.category || ""));
+                    } else if (s.event_type === "scroll_milestone") {
+                        tl.appendChild(journeyItem("event", t, "Scrolled to " + (s.target || "") , "", "SCROLL"));
+                    } else {
+                        tl.appendChild(journeyItem("event", t, s.event_type || "event", s.target || ""));
+                    }
+                });
+                panel.appendChild(tl);
+                holder.appendChild(panel);
+            });
+        }
+
+        function fetchBusiness() {
+            Promise.all([
+                apiFetch("/api/stats/funnel?" + windowParams()),
+                apiFetch("/api/stats/cards?" + windowParams()),
+                apiFetch("/api/stats/campaigns?" + windowParams()),
+                apiFetch("/api/stats/journeys?" + windowParams("limit=8"))
+            ]).then(function (res) {
+                renderFunnel(res[0].funnel || []);
+                renderCards(res[1].cards || []);
+                renderCampaigns(res[2].campaigns || []);
+                renderJourneys(res[3].journeys || []);
+            }).catch(function (err) {
+                console.error("Failed to fetch business sections:", err);
+            });
+        }
+
+        /* =============================================================
+            17. INIT
+           ============================================================= */
+        fetchAll();
+        fetchBreakdowns();
+        fetchBusiness();
+        pollEvents();
+        setInterval(pollEvents, 10000);
+        setInterval(fetchAll, 30000);
+        setInterval(fetchBreakdowns, 60000);
+        setInterval(fetchBusiness, 60000);
+    })();
+    </script>
+
+    <!-- Samiksha Tracker — the dashboard itself is never tracked (analyst-only value) -->
+    <script>window.SAMIKSHA_SKIP_TRACKING = true;</script>
+    <script src="https://skshm-cyber.github.io/samiksha-analytics/tracker.js"></script>
+
+</body>
+</html>

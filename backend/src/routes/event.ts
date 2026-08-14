@@ -75,15 +75,22 @@ export async function handleEvent(
   }
 
   // Insert the event
-  let result = await supabaseInsert(env, "events", {
-    visitor_id: body.visitor_id,
-    session_id: body.session_id,
-    timestamp: body.timestamp || now,
-    event_type: body.event_type,
-    event_target: body.event_target || "",
-    page_url: body.page_url || "",
-    properties: body.properties || {},
-  });
+  const insertEvent = (): Promise<{ ok: boolean; error?: string }> => {
+    return supabaseInsert(env, "events", {
+      visitor_id: body.visitor_id,
+      session_id: body.session_id,
+      timestamp: body.timestamp || now,
+      event_type: body.event_type,
+      event_target: body.event_target || "",
+      page_url: body.page_url || "",
+      browser: body.browser || "",
+      os: body.os || "",
+      device_type: body.device_type || "",
+      properties: body.properties || {},
+    });
+  };
+
+  let result = await insertEvent();
 
   // Self-heal: if the visitor row doesn't exist yet (event beat /api/track),
   // create it and retry the insert once.
@@ -94,15 +101,7 @@ export async function handleEvent(
       last_seen: now,
     });
     if (visResult.ok) {
-      result = await supabaseInsert(env, "events", {
-        visitor_id: body.visitor_id,
-        session_id: body.session_id,
-        timestamp: body.timestamp || now,
-        event_type: body.event_type,
-        event_target: body.event_target || "",
-        page_url: body.page_url || "",
-        properties: body.properties || {},
-      });
+      result = await insertEvent();
     }
   }
 

@@ -37,5 +37,8 @@ export interface EventPayload {
   page_url?: string;
   time_on_page?: number;
   scroll_percentage?: number;
+  browser?: string;
+  os?: string;
+  device_type?: string;
   properties?: Record<string, unknown>;
 }
