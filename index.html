@@ -269,27 +269,6 @@
         .stat-badge.negative { background: var(--red-dim); color: var(--red); }
 
         /* =============================================================
-           RESPONSIVE
-           ============================================================= */
-        @media (max-width: 1200px) {
-            .hero-stats { grid-template-columns: repeat(2, 1fr); }
-            .secondary-stats { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 768px) {
-            .topnav { padding: 0 var(--sp-4); }
-            .topnav-center { display: none; }
-            .search-box { display: none; }
-            .nav-divider { display: none; }
-            .main { padding: var(--sp-5) var(--sp-4); }
-            .hero-stats { grid-template-columns: 1fr; }
-            .secondary-stats { grid-template-columns: 1fr; }
-            .hero-card .stat-number { font-size: 2rem; }
-            .stat-card .stat-number { font-size: 1.5rem; }
-            .live-section { grid-template-columns: 1fr; }
-            .globe-wrapper { max-width: 320px; margin: 0 auto; }
-        }
-
-        /* =============================================================
            SECTION 3: LIVE ACTIVITY — Globe + Feed
            ============================================================= */
         .live-section {
@@ -545,15 +524,6 @@
             color: var(--text-tertiary); font-size: 0.8125rem;
         }
 
-        @media (max-width: 1200px) {
-            .breakdown-grid.grid-3 { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 768px) {
-            .breakdown-grid, .breakdown-grid.grid-3 { grid-template-columns: 1fr; }
-            .chart-value { font-size: 2rem; }
-            .chart-wrap { height: 220px; }
-        }
-
         /* =============================================================
            SECTION 7: FUNNEL — conversion stages
            ============================================================= */
@@ -615,6 +585,7 @@
         }
         .table-panel .price-cell { color: var(--text-primary); font-weight: 600; }
         .card-rank { color: var(--text-tertiary); }
+        .mobile-rank { display: none; }
         .rate-hot { color: var(--green); font-weight: 600; }
         .rate-cold { color: var(--text-tertiary); }
 
@@ -657,6 +628,185 @@
         }
         .tl-tag.cta { background: var(--green-dim); color: var(--green); }
         .tl-tag.plan { background: var(--yellow-dim); color: var(--yellow); }
+
+        /* =============================================================
+           RESPONSIVE (consolidated at end so mobile overrides win)
+           ============================================================= */
+        @media (max-width: 1200px) {
+            .hero-stats { grid-template-columns: repeat(2, 1fr); }
+            .secondary-stats { grid-template-columns: repeat(2, 1fr); }
+            .breakdown-grid.grid-3 { grid-template-columns: 1fr 1fr; }
+            .topnav-right { gap: var(--sp-2); }
+            .search-box, .icon-btn { display: none; }
+        }
+
+        /* =============================================================
+           MOBILE (≤ 768px) — two-row nav, 2-col stat grids,
+           reading table becomes stacked cards, no horizontal scroll
+           ============================================================= */
+        @media (max-width: 767px) {
+            html { -webkit-text-size-adjust: 100%; }
+            body { -webkit-tap-highlight-color: transparent; }
+
+            /* ── topnav wraps into 2 rows; date range always visible ── */
+            .topnav {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 10px 14px 8px;
+                gap: 10px;
+            }
+            .topnav-left { gap: var(--sp-3); }
+            .site-name { display: none; }
+            .nav-divider { display: none; }
+            .logo { font-size: 0.9rem; }
+            .topnav-right { gap: var(--sp-2); }
+            .search-box, .icon-btn { display: none; }
+            .live-badge { padding: 5px 9px; }
+            .topnav-center { order: 3; width: 100%; }
+            .date-range {
+                width: 100%;
+                padding: 3px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .date-range::-webkit-scrollbar { display: none; }
+            .date-btn {
+                flex: 1 0 auto;
+                min-height: 38px;
+                padding: 8px 14px;
+                font-size: 0.75rem;
+                touch-action: manipulation;
+            }
+
+            /* ── layout & spacing ── */
+            .main { padding: var(--sp-5) 14px var(--sp-8); }
+            .section-header { margin-bottom: var(--sp-4); }
+            .section-title { font-size: 0.75rem; }
+
+            /* ── hero stats: 2×2 grid ── */
+            .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+            .hero-card { padding: var(--sp-4); border-radius: var(--radius-md); }
+            .hero-card .stat-label { font-size: 0.72rem; margin-bottom: var(--sp-2); }
+            .hero-card .stat-row { flex-wrap: wrap; row-gap: 4px; margin-bottom: var(--sp-3); }
+            .hero-card .stat-number { font-size: 1.7rem; }
+            .hero-card .stat-sparkline { height: 34px; margin-bottom: var(--sp-2); }
+            .hero-card .stat-compare { font-size: 0.68rem; line-height: 1.5; }
+            .stat-badge { padding: 2px 7px; font-size: 0.68rem; }
+
+            /* ── secondary stats: 2×3 grid ── */
+            .secondary-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-6); }
+            .stat-card { padding: var(--sp-4); border-radius: var(--radius-md); }
+            .stat-card .stat-label { font-size: 0.7rem; margin-bottom: var(--sp-2); }
+            .stat-card .stat-row { flex-wrap: wrap; row-gap: 4px; margin-bottom: var(--sp-3); }
+            .stat-card .stat-number { font-size: 1.4rem; }
+            .stat-card .stat-sparkline { height: 28px; }
+            .stat-card .stat-compare { font-size: 0.68rem; line-height: 1.5; }
+
+            /* ── live section ── */
+            .live-section { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-6); }
+            .live-section > * { min-width: 0; }
+            .globe-panel, .feed-panel { padding: var(--sp-4); }
+            .globe-wrapper { max-width: 280px; }
+            .feed-text { white-space: normal; }
+            .feed-list { min-width: 0; }
+
+            /* keep Chart.js canvases from forcing grid columns wider */
+            .stat-sparkline canvas, .chart-wrap canvas, .globe-canvas { width: 100% !important; }
+
+            /* ── chart ── */
+            .chart-panel { padding: var(--sp-4); margin-bottom: var(--sp-6); }
+            .chart-top { gap: var(--sp-3); margin-bottom: var(--sp-4); }
+            .chart-value { font-size: 1.9rem; }
+            .chart-label { font-size: 0.7rem; }
+            .chart-wrap { height: 220px; }
+            .chart-btn { min-height: 36px; }
+
+            /* ── breakdown lists ── */
+            .breakdown-grid, .breakdown-grid.grid-3 { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-6); }
+            .list-panel { padding: var(--sp-4); min-width: 0; }
+            .list-body { max-height: 320px; }
+
+            /* ── funnel ── */
+            .funnel-panel { padding: var(--sp-4); margin-bottom: var(--sp-6); }
+            .funnel-label { font-size: 0.75rem; }
+
+            /* ── reading-performance table → stacked cards ── */
+            .table-panel { padding: var(--sp-4); margin-bottom: var(--sp-6); }
+            .table-panel table { min-width: 0; }
+            .table-panel table, .table-panel tbody, .table-panel tr, .table-panel td { display: block; }
+            .table-panel thead { display: none; }
+            .table-panel tbody tr {
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                padding: 4px var(--sp-4) var(--sp-2);
+                margin-bottom: var(--sp-3);
+                background: var(--bg-card-hover);
+            }
+            .table-panel tbody td {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                align-items: center;
+                gap: var(--sp-3);
+                padding: var(--sp-2) 0;
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+                white-space: normal;
+                text-align: right;
+            }
+            .table-panel tbody td:last-child { border-bottom: none; }
+            .table-panel tbody td::before {
+                content: attr(data-label);
+                font-size: 0.62rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-tertiary);
+                text-align: left;
+            }
+            .table-panel td.card-rank { display: none; }
+            .table-panel td.card-name {
+                display: block;
+                padding: var(--sp-3) 0;
+                text-align: left;
+            }
+            .table-panel td.card-name::before { display: none; }
+            .table-panel td.card-name .card-title {
+                display: flex;
+                align-items: center;
+                gap: var(--sp-2);
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            .mobile-rank {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 26px;
+                height: 26px;
+                border-radius: 8px;
+                background: var(--violet-dim);
+                color: var(--violet);
+                font-size: 0.72rem;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            /* ── journeys ── */
+            .journey-panel { padding: var(--sp-4); margin-bottom: var(--sp-3); min-width: 0; }
+
+            .feed-count { font-size: 0.68rem; }
+        }
+
+        /* Very narrow phones (≤ 340px): single-column stats */
+        @media (max-width: 340px) {
+            .hero-stats, .secondary-stats { grid-template-columns: minmax(0, 1fr); }
+            .hero-card .stat-number { font-size: 2rem; }
+            .stat-card .stat-number { font-size: 1.6rem; }
+            .date-btn { padding: 8px 10px; font-size: 0.7rem; }
+            .main { padding-left: 12px; padding-right: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -673,7 +823,7 @@
             <div class="nav-divider"></div>
             <button class="website-selector" id="website-selector">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <span>mywebsite.com</span>
+                <span class="site-name">mywebsite.com</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
         </div>
@@ -995,7 +1145,42 @@
         "use strict";
 
         var API_BASE = "https://samiksha-analytics1.tewarisaksham20.workers.dev";
-        var currentDays = 1;
+        var currentRange = { start: "", end: "" };
+
+        /* IST calendar-day helper — the analytics day resets at 12:00 AM IST */
+        function istDayStart(offsetDays) {
+            var parts = new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
+            }).formatToParts(new Date());
+            var y, m, d;
+            parts.forEach(function (p) {
+                if (p.type === "year") y = +p.value;
+                if (p.type === "month") m = +p.value - 1;
+                if (p.type === "day") d = +p.value;
+            });
+            var utcMidnight = Date.UTC(y, m, d - offsetDays);
+            return new Date(utcMidnight - 5.5 * 3600 * 1000).toISOString();
+        }
+
+        function windowParams(extra) {
+            var p = "start=" + encodeURIComponent(currentRange.start) + "&end=" + encodeURIComponent(currentRange.end);
+            return extra ? p + "&" + extra : p;
+        }
+
+        function setRange(name) {
+            if (name === "today") {
+                currentRange = { start: istDayStart(0), end: new Date().toISOString() };
+            } else if (name === "yesterday") {
+                currentRange = { start: istDayStart(1), end: istDayStart(0) };
+            } else if (name === "7d") {
+                currentRange = { start: istDayStart(6), end: new Date().toISOString() };
+            } else if (name === "30d") {
+                currentRange = { start: istDayStart(29), end: new Date().toISOString() };
+            } else if (name === "90d") {
+                currentRange = { start: istDayStart(89), end: new Date().toISOString() };
+            }
+        }
+        setRange("today");
 
         /* =============================================================
            1. DATE RANGE SELECTOR
@@ -1007,14 +1192,9 @@
                 btn.addEventListener("click", function () {
                     dateButtons.forEach(function (b) { b.classList.remove("active"); });
                     btn.classList.add("active");
-                    var range = btn.getAttribute("data-range");
-                    if (range === "today") currentDays = 1;
-                    else if (range === "yesterday") currentDays = 1;
-                    else if (range === "7d") currentDays = 7;
-                    else if (range === "30d") currentDays = 30;
-                    else if (range === "90d") currentDays = 90;
+                    setRange(btn.getAttribute("data-range"));
                     fetchAll();
-                    fetchBreakdowns(currentDays);
+                    fetchBreakdowns();
                     fetchBusiness();
                 });
             });
@@ -1174,14 +1354,17 @@
            10. FETCH & RENDER ALL STATS
            ============================================================= */
         function fetchAll() {
+            var daysInRange = Math.max(1, Math.round((new Date(currentRange.end) - new Date(currentRange.start)) / 86400000));
+            currentPeriod = Math.max(daysInRange, 14);
+            var chartParams = "start=" + encodeURIComponent(istDayStart(currentPeriod - 1)) + "&end=" + encodeURIComponent(currentRange.end);
             Promise.all([
-                apiFetch("/api/stats/overview"),
-                apiFetch("/api/stats/secondary"),
-                apiFetch("/api/stats/trends?days=" + currentDays),
-                apiFetch("/api/stats/hourly"),
+                apiFetch("/api/stats/overview?" + windowParams()),
+                apiFetch("/api/stats/secondary?" + windowParams()),
+                apiFetch("/api/stats/trends?" + chartParams),
+                apiFetch("/api/stats/hourly?" + windowParams()),
                 apiFetch("/api/stats/live"),
                 apiFetch("/api/stats/events?summary=true"),
-                apiFetch("/api/stats/daily?days=" + Math.max(currentDays, 14))
+                apiFetch("/api/stats/daily?" + chartParams)
             ]).then(function (results) {
                 var overview = results[0] || {};
                 var secondary = results[1] || {};
@@ -1277,7 +1460,6 @@
                 if (feedCount) feedCount.textContent = (overview.live_visitors || 0) + " active visitors";
 
                 /* Store for main chart */
-                currentPeriod = Math.max(currentDays, 14);
                 chartData = dailyArr;
                 renderChart();
             }).catch(function (err) {
@@ -1692,13 +1874,13 @@
             });
         }
 
-        function fetchBreakdowns(days) {
+        function fetchBreakdowns() {
             Promise.all([
-                apiFetch("/api/stats/referrers?days=" + days + "&limit=10"),
-                apiFetch("/api/stats/pages?days=" + days + "&limit=10"),
-                apiFetch("/api/stats/countries?days=" + days + "&limit=12"),
-                apiFetch("/api/stats/devices?days=" + days),
-                apiFetch("/api/stats/browsers?days=" + days)
+                apiFetch("/api/stats/referrers?" + windowParams("limit=10")),
+                apiFetch("/api/stats/pages?" + windowParams("limit=10")),
+                apiFetch("/api/stats/countries?" + windowParams("limit=12")),
+                apiFetch("/api/stats/devices?" + windowParams()),
+                apiFetch("/api/stats/browsers?" + windowParams())
             ]).then(function (res) {
                 renderReferrers(res[0].referrers || []);
                 renderPages(res[1].pages || []);
@@ -1855,14 +2037,14 @@
                 var badge = c.badge ? ' <span class="badge-pill">' + escapeHtml(c.badge) + '</span>' : "";
                 html += '<tr>' +
                     '<td class="card-rank">' + (i + 1) + '</td>' +
-                    '<td style="color:var(--text-primary);font-weight:600;">' + escapeHtml(c.name) + badge + '</td>' +
-                    '<td>' + escapeHtml(c.category || "—") + '</td>' +
-                    '<td class="price-cell">' + (c.price ? c.currency + " " + formatInt(c.price) : "—") + '</td>' +
-                    '<td>' + escapeHtml(c.duration || "—") + '</td>' +
-                    '<td>' + formatInt(c.clicks) + '</td>' +
-                    '<td>' + clickPct + '%</td>' +
-                    '<td>' + formatInt(c.ctas || 0) + '</td>' +
-                    '<td class="' + rateCls + '">' + (c.cta_rate || 0) + '%</td>' +
+                    '<td class="card-name"><span class="card-title"><span class="mobile-rank">' + (i + 1) + '</span>' + escapeHtml(c.name) + badge + '</span></td>' +
+                    '<td data-label="Category">' + escapeHtml(c.category || "—") + '</td>' +
+                    '<td class="price-cell" data-label="Price">' + (c.price ? c.currency + " " + formatInt(c.price) : "—") + '</td>' +
+                    '<td data-label="Duration">' + escapeHtml(c.duration || "—") + '</td>' +
+                    '<td data-label="Clicks">' + formatInt(c.clicks) + '</td>' +
+                    '<td data-label="% of clicks">' + clickPct + '%</td>' +
+                    '<td data-label="CTA clicks">' + formatInt(c.ctas || 0) + '</td>' +
+                    '<td class="' + rateCls + '" data-label="CTA rate">' + (c.cta_rate || 0) + '%</td>' +
                     '</tr>';
             });
             html += '</tbody></table>';
@@ -1970,12 +2152,11 @@
         }
 
         function fetchBusiness() {
-            var days = currentDays;
             Promise.all([
-                apiFetch("/api/stats/funnel?days=" + days),
-                apiFetch("/api/stats/cards?days=" + days),
-                apiFetch("/api/stats/campaigns?days=" + days),
-                apiFetch("/api/stats/journeys?days=" + days + "&limit=8")
+                apiFetch("/api/stats/funnel?" + windowParams()),
+                apiFetch("/api/stats/cards?" + windowParams()),
+                apiFetch("/api/stats/campaigns?" + windowParams()),
+                apiFetch("/api/stats/journeys?" + windowParams("limit=8"))
             ]).then(function (res) {
                 renderFunnel(res[0].funnel || []);
                 renderCards(res[1].cards || []);
@@ -1990,12 +2171,12 @@
             17. INIT
            ============================================================= */
         fetchAll();
-        fetchBreakdowns(currentDays);
+        fetchBreakdowns();
         fetchBusiness();
         pollEvents();
         setInterval(pollEvents, 10000);
         setInterval(fetchAll, 30000);
-        setInterval(function () { fetchBreakdowns(currentDays); }, 60000);
+        setInterval(fetchBreakdowns, 60000);
         setInterval(fetchBusiness, 60000);
     })();
     </script>
