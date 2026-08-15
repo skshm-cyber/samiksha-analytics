@@ -53,14 +53,13 @@
     // =======================================================================
     // BOT / CRAWLER DETECTION
     // =======================================================================
-    // Skip tracking for known bots, headless browsers, and automated tools.
+    // Skip tracking for known crawlers and automated tools.
+    // Only checks user-agent — never navigator.webdriver (false positives from
+    // accessibility extensions) or navigator.languages (empty in privacy browsers).
     function isBot() {
-        // Headless browsers (Puppeteer, Selenium, Playwright)
-        if (navigator.webdriver) return true;
-
         var ua = (navigator.userAgent || "").toLowerCase();
 
-        // Known search-engine crawlers
+        // Known search-engine crawlers & headless tools
         var botPatterns = [
             "bot", "spider", "crawler", "slurp", "mediapartners",
             "facebookexternalhit", "baiduspider", "yandexbot",
@@ -76,10 +75,6 @@
         for (var i = 0; i < botPatterns.length; i++) {
             if (ua.indexOf(botPatterns[i]) !== -1) return true;
         }
-
-        // Missing key browser features (indicates non-browser environment)
-        if (!navigator.languages || navigator.languages.length === 0) return true;
-        if (screen.width === 0 && screen.height === 0) return true;
 
         return false;
     }
