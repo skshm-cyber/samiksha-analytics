@@ -50,7 +50,42 @@
         return false;
     }
 
+    // =======================================================================
+    // BOT / CRAWLER DETECTION
+    // =======================================================================
+    // Skip tracking for known bots, headless browsers, and automated tools.
+    function isBot() {
+        // Headless browsers (Puppeteer, Selenium, Playwright)
+        if (navigator.webdriver) return true;
+
+        var ua = (navigator.userAgent || "").toLowerCase();
+
+        // Known search-engine crawlers
+        var botPatterns = [
+            "bot", "spider", "crawler", "slurp", "mediapartners",
+            "facebookexternalhit", "baiduspider", "yandexbot",
+            "microsoftbot", "applebot", "semrushbot", "ahrefssiteaudit",
+            "dotbot", "petalbot", "bytespider", "gptbot", "chatgpt-user",
+            "ccbot", "claudebot", "anthropic-ai", "cohere-ai",
+            "google-inspectiontool", "lighthouse", "pagespeed",
+            "headlesschrome", "phantomjs", "slimerjs", "splash",
+            "wget", "curl", "python-requests", "python-urllib",
+            "go-http-client", "java/", "perl", "ruby",
+            "scrapy", "httrack", "archive.org_bot",
+        ];
+        for (var i = 0; i < botPatterns.length; i++) {
+            if (ua.indexOf(botPatterns[i]) !== -1) return true;
+        }
+
+        // Missing key browser features (indicates non-browser environment)
+        if (!navigator.languages || navigator.languages.length === 0) return true;
+        if (screen.width === 0 && screen.height === 0) return true;
+
+        return false;
+    }
+
     if (shouldSkipTracking()) return;
+    if (isBot()) return;
 
     // =======================================================================
     // HELPER: UUID v4
