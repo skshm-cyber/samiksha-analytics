@@ -1196,6 +1196,7 @@
                     fetchAll();
                     fetchBreakdowns();
                     fetchBusiness();
+                    pollEvents();
                 });
             });
         }
@@ -1363,7 +1364,7 @@
                 apiFetch("/api/stats/trends?" + chartParams),
                 apiFetch("/api/stats/hourly?" + windowParams()),
                 apiFetch("/api/stats/live"),
-                apiFetch("/api/stats/events?summary=true"),
+                apiFetch("/api/stats/events?summary=true&" + windowParams()),
                 apiFetch("/api/stats/daily?" + chartParams)
             ]).then(function (results) {
                 var overview = results[0] || {};
@@ -1524,7 +1525,7 @@
         }
 
         function pollEvents() {
-            apiFetch("/api/stats/events").then(function (data) {
+            apiFetch("/api/stats/events?" + windowParams("limit=50")).then(function (data) {
                 var events = data.events || [];
                 if (events.length === 0) return;
 

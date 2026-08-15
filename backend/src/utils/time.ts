@@ -65,5 +65,5 @@ export function getWindow(url: URL, defDays = 1): { start: string; end: string }
     return { start, end: new Date(new Date(start).getTime() + 24 * 3600 * 1000).toISOString() };
   }
   const days = getDaysParam(url, defDays);
-  return { start: istDayStartISO(-(days - 1)), end: new Date().toISOString() };
+  return { start: istDayStartISO(days - 1), end: new Date().toISOString() };
 }
