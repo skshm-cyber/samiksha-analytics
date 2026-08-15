@@ -39,10 +39,6 @@
     // =======================================================================
     // The analytics dashboard/github-pages itself also loads tracker.js. Skip
     // so dashboard views never pollute your real traffic stats.
-    var DEBUG = window.SAMIKSHA_DEBUG || false;
-    function log(msg) {
-        if (DEBUG) console.log("[samiksha-tracker]", msg);
-    }
     function shouldSkipTracking() {
         if (window.SAMIKSHA_SKIP_TRACKING) return true;
         var host = window.location.hostname || "";
@@ -54,38 +50,7 @@
         return false;
     }
 
-    // =======================================================================
-    // BOT / CRAWLER DETECTION
-    // =======================================================================
-    // Skip tracking for known crawlers and automated tools.
-    // Only checks user-agent — never navigator.webdriver (false positives from
-    // accessibility extensions) or navigator.languages (empty in privacy browsers).
-    function isBot() {
-        var ua = (navigator.userAgent || "").toLowerCase();
-
-        // Known search-engine crawlers & headless tools
-        var botPatterns = [
-            "bot", "spider", "crawler", "slurp", "mediapartners",
-            "facebookexternalhit", "baiduspider", "yandexbot",
-            "microsoftbot", "applebot", "semrushbot", "ahrefssiteaudit",
-            "dotbot", "petalbot", "bytespider", "gptbot", "chatgpt-user",
-            "ccbot", "claudebot", "anthropic-ai", "cohere-ai",
-            "google-inspectiontool", "lighthouse", "pagespeed",
-            "headlesschrome", "phantomjs", "slimerjs", "splash",
-            "wget", "curl", "python-requests", "python-urllib",
-            "go-http-client", "java/", "perl", "ruby",
-            "scrapy", "httrack", "archive.org_bot",
-        ];
-        for (var i = 0; i < botPatterns.length; i++) {
-            if (ua.indexOf(botPatterns[i]) !== -1) return true;
-        }
-
-        return false;
-    }
-
-    if (shouldSkipTracking()) { log("skipped (self-tracking exclusion)"); return; }
-    if (isBot()) { log("skipped (bot UA: " + navigator.userAgent + ")"); return; }
-    log("tracking enabled on " + window.location.hostname);
+    if (shouldSkipTracking()) return;
 
     // =======================================================================
     // HELPER: UUID v4
@@ -207,18 +172,15 @@
     // =======================================================================
     function sendJson(url, data) {
         var payload = JSON.stringify(data);
-        log("POST " + url + " → " + payload.substring(0, 120));
         if (navigator.sendBeacon) {
-            var ok = navigator.sendBeacon(url, payload);
-            log("sendBeacon result: " + ok);
+            navigator.sendBeacon(url, payload);
         } else {
             fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: payload,
                 keepalive: true,
-            }).then(function (r) { log("fetch status: " + r.status); })
-              .catch(function (e) { log("fetch error: " + e); });
+            });
         }
     }
 
