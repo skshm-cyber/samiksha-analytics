@@ -39,6 +39,10 @@
     // =======================================================================
     // The analytics dashboard/github-pages itself also loads tracker.js. Skip
     // so dashboard views never pollute your real traffic stats.
+    var DEBUG = window.SAMIKSHA_DEBUG || false;
+    function log(msg) {
+        if (DEBUG) console.log("[samiksha-tracker]", msg);
+    }
     function shouldSkipTracking() {
         if (window.SAMIKSHA_SKIP_TRACKING) return true;
         var host = window.location.hostname || "";
@@ -79,8 +83,9 @@
         return false;
     }
 
-    if (shouldSkipTracking()) return;
-    if (isBot()) return;
+    if (shouldSkipTracking()) { log("skipped (self-tracking exclusion)"); return; }
+    if (isBot()) { log("skipped (bot UA: " + navigator.userAgent + ")"); return; }
+    log("tracking enabled on " + window.location.hostname);
 
     // =======================================================================
     // HELPER: UUID v4
@@ -202,15 +207,18 @@
     // =======================================================================
     function sendJson(url, data) {
         var payload = JSON.stringify(data);
+        log("POST " + url + " → " + payload.substring(0, 120));
         if (navigator.sendBeacon) {
-            navigator.sendBeacon(url, payload);
+            var ok = navigator.sendBeacon(url, payload);
+            log("sendBeacon result: " + ok);
         } else {
             fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: payload,
                 keepalive: true,
-            });
+            }).then(function (r) { log("fetch status: " + r.status); })
+              .catch(function (e) { log("fetch error: " + e); });
         }
     }
 
