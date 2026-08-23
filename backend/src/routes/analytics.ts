@@ -422,13 +422,59 @@ export async function handleEvents(
   const { start, end } = getWindow(url);
   const limit = parseInt(url.searchParams.get("limit") || "100", 10);
 
-  const events = await supabaseQuery(env, "events", {
-    timestamp: [`gte.${start}`, `lte.${end}`],
-    order: "timestamp.desc",
-    limit: String(limit),
+  const [events, pvs] = await Promise.all([
+    supabaseQuery(env, "events", {
+      timestamp: [`gte.${start}`, `lte.${end}`],
+      order: "timestamp.desc",
+      limit: String(limit),
+    }),
+    supabaseQuery(env, "page_views", {
+      timestamp: [`gte.${start}`, `lte.${end}`],
+      order: "timestamp.desc",
+      limit: String(limit),
+      select: "id,timestamp,page_url,visitor_id",
+    }),
+  ]);
+
+  // Join device info for page views so the feed can show browser/device
+  const deviceMap = new Map<string, Record<string, unknown>>();
+  if (pvs.length > 0) {
+    const pvIds = pvs.map((r) => r.id as string).slice(0, 1000);
+    const devices = await supabaseQuery(env, "devices", {
+      page_view_id: `in.(${pvIds.join(",")})`,
+      select: "page_view_id,browser,os,device_type",
+    });
+    for (const d of devices) {
+      deviceMap.set(d.page_view_id as string, d);
+    }
+  }
+
+  // Map page views to feed entries so every visit shows up in Recent Activity
+  const pageViewEvents = pvs.map((pv) => {
+    const dev = deviceMap.get(pv.id as string) || {};
+    return {
+      id: "pv_" + (pv.id as string),
+      event_type: "page_view",
+      event_target: "",
+      properties: {},
+      page_url: pv.page_url,
+      timestamp: pv.timestamp,
+      visitor_id: pv.visitor_id,
+      browser: (dev.browser as string) || "",
+      os: (dev.os as string) || "",
+      device_type: (dev.device_type as string) || "",
+    };
   });
 
-  return jsonResponse(env, { events }, 200, origin);
+  const merged = [...events, ...pageViewEvents]
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp as string).getTime() -
+        new Date(a.timestamp as string).getTime()
+    )
+    .slice(0, limit);
+
+  return jsonResponse(env, { events: merged }, 200, origin);
 }
 
 // ── GET /api/stats/events/summary ────────────────────────────────────────────
