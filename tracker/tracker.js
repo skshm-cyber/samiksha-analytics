@@ -293,18 +293,22 @@
                 }
             }
             if (node.querySelector) {
-                var headings = node.querySelectorAll("h1,h2,h3,h4,h5,h6,.reading-card-name");
-                var text = cleanText(node.textContent || "");
-                var price = parsePrice(text);
-                if (headings.length > 0 && price.value !== null && text.length > 4) {
-                    return {
-                        name: cleanText(headings[0].textContent),
-                        category: sectionCategory(node),
-                        price: price.value,
-                        currency: price.currency,
-                        duration: "",
-                        badge: "",
-                    };
+                var cls = (node.className || "").toLowerCase();
+                var isCard = /\b(service-card|pricing-card|reading-card|plan-card|card)\b/.test(cls);
+                if (isCard) {
+                    var headings = node.querySelectorAll("h1,h2,h3,h4,h5,h6,.reading-card-name");
+                    var text = cleanText(node.textContent || "");
+                    var price = parsePrice(text);
+                    if (headings.length > 0 && price.value !== null && text.length > 4) {
+                        return {
+                            name: cleanText(headings[0].textContent),
+                            category: sectionCategory(node),
+                            price: price.value,
+                            currency: price.currency,
+                            duration: "",
+                            badge: "",
+                        };
+                    }
                 }
             }
             node = node.parentNode;
