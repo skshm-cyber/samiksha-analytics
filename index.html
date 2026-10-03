@@ -519,6 +519,12 @@
             font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);
             flex-shrink: 0; font-variant-numeric: tabular-nums;
         }
+        .list-meta {
+            display: flex; gap: var(--sp-3); margin-top: 2px; flex-wrap: wrap;
+        }
+        .meta-item {
+            font-size: 0.6875rem; color: var(--text-tertiary); white-space: nowrap;
+        }
         .empty-row {
             padding: var(--sp-8) var(--sp-3); text-align: center;
             color: var(--text-tertiary); font-size: 0.8125rem;
@@ -1820,7 +1826,25 @@
             if (pages.length === 0) { list.innerHTML = emptyRow("No pages in this period."); return; }
             var max = pages[0].visits || 1;
             pages.forEach(function (p) {
-                list.appendChild(itemRow('<span>📄</span>', displayPage(p.page_url), p.visits, max));
+                var scrollPct = p.avg_scroll != null ? Math.round(p.avg_scroll) : 0;
+                var timeSec = p.avg_time_on_page != null ? Math.round(p.avg_time_on_page) : 0;
+                var timeStr = timeSec >= 60 ? Math.floor(timeSec / 60) + "m " + (timeSec % 60) + "s" : timeSec + "s";
+                var details = '<div class="list-meta">' +
+                    '<span class="meta-item">📊 Scroll: ' + scrollPct + '%</span>' +
+                    '<span class="meta-item">⏱ Time: ' + timeStr + '</span>' +
+                    '</div>';
+                var el = document.createElement("div");
+                el.className = "list-item";
+                var bar = max > 0 ? Math.round((p.visits / max) * 100) : 0;
+                el.innerHTML =
+                    '<div class="list-icon"><span>📄</span></div>' +
+                    '<div class="list-main">' +
+                        '<div class="list-name">' + escapeHtml(displayPage(p.page_url)) + '</div>' +
+                        details +
+                        '<div class="list-bar"><div class="list-fill" style="width:' + bar + '%"></div></div>' +
+                    '</div>' +
+                    '<div class="list-value">' + formatInt(p.visits) + '</div>';
+                list.appendChild(el);
             });
         }
 
