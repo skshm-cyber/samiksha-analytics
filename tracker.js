@@ -460,6 +460,58 @@
     });
 
     // =======================================================================
+    // 10b. HEARTBEAT — keep-alive ping so live visitors drop off quickly
+    // =======================================================================
+    // Sends a lightweight heartbeat every 30 seconds while the page is visible.
+    // The backend uses this to accurately compute "live" visitors. When the
+    // user closes the tab, heartbeats stop and they disappear from live
+    // within ~30-60 seconds (instead of 5 minutes).
+    var heartbeatInterval = null;
+
+    function sendHeartbeat() {
+        // Only send if document is visible (user is actually looking at the page)
+        if (document.visibilityState === "hidden") return;
+        sendJson(API_BASE + "/api/event", {
+            visitor_id: visitorId,
+            session_id: sessionId,
+            timestamp: new Date().toISOString(),
+            event_type: "heartbeat",
+            event_target: "",
+            page_url: window.location.href,
+            browser: browser.name,
+            os: os,
+            device_type: deviceType,
+            properties: {}
+        });
+    }
+
+    function startHeartbeat() {
+        if (heartbeatInterval) return;
+        heartbeatInterval = setInterval(sendHeartbeat, 30000); // every 30 seconds
+        // Send one immediately so live count updates fast on first visit
+        sendHeartbeat();
+    }
+
+    function stopHeartbeat() {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+        }
+    }
+
+    // Start heartbeat when page becomes visible, stop when hidden
+    document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") {
+            startHeartbeat();
+        } else {
+            stopHeartbeat();
+        }
+    });
+
+    // Start on load
+    startHeartbeat();
+
+    // =======================================================================
     // 11. SECTION VIEWS — pricing sub-areas (IntersectionObserver)
     // =======================================================================
     var sectionSent = {};
