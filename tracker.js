@@ -471,6 +471,11 @@
     function sendHeartbeat() {
         // Only send if document is visible (user is actually looking at the page)
         if (document.visibilityState === "hidden") return;
+        // Include current scroll % and elapsed time so the backend can update
+        // page_view even if beforeunload never fires (mobile, crash, etc.)
+        var elapsed = Math.round(((Date.now() - pageLoadTime) / 1000) * 10) / 10;
+        var currentScroll = scrollPercent();
+        if (currentScroll > maxScrollPercent) maxScrollPercent = currentScroll;
         sendJson(API_BASE + "/api/event", {
             visitor_id: visitorId,
             session_id: sessionId,
@@ -481,6 +486,8 @@
             browser: browser.name,
             os: os,
             device_type: deviceType,
+            time_on_page: elapsed,
+            scroll_percentage: maxScrollPercent,
             properties: {}
         });
     }

@@ -1479,6 +1479,8 @@
            ============================================================= */
         var feedList = document.getElementById("feed-list");
         var seenEventIds = {};
+        var seenEventOrder = [];
+        var SEEN_EVENTS_MAX = 500;
         var eventTypes = {
             page_view:        { type: "page",   icon: "\uD83D\uDCC4", prefix: "Viewed " },
             button_click:     { type: "click",  icon: "\uD83D\uDC46", prefix: "Clicked " },
@@ -1538,6 +1540,12 @@
                 events.slice().reverse().forEach(function (ev, idx) {
                     if (seenEventIds[ev.id]) return;
                     seenEventIds[ev.id] = true;
+                    seenEventOrder.push(ev.id);
+                    // Prune oldest entries to prevent unbounded memory growth
+                    if (seenEventOrder.length > SEEN_EVENTS_MAX) {
+                        var oldId = seenEventOrder.shift();
+                        delete seenEventIds[oldId];
+                    }
                     var mapped = eventTypes[ev.event_type] || { type: "page", icon: "\uD83D\uDCC4", prefix: "" };
                     var target = ev.event_target || "";
                     var text = "";
